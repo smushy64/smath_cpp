@@ -1,0 +1,5 @@
+.vscode
+build
+src/log.hpp
+src/main.cpp
+Makefile
