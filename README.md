@@ -1,7 +1,8 @@
 # smath (c++)
 smath is a header-only math library for my personal C++ projects.
 
-[to-do list](TODO.md)
+- [src](src)
+- [to-do list](TODO.md)
 
 ## About
 
