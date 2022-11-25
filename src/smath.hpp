@@ -7,11 +7,11 @@
 #include <cstdint>
 #include <immintrin.h>
 
-// TODO(alicia): SIMD!
 #ifndef SMUSHY_TYPE_ALIAS
 #define SMUSHY_TYPE_ALIAS 1
 
 // TYPEDEF -----------------------------------------------------------------------------------------
+
 // Pointer-sized unsigned integer
 typedef uintptr_t usize;
 // Pointer-sized signed integer
@@ -319,6 +319,22 @@ inline constexpr f32 sqr( f32 x ) {
 inline constexpr f64 sqr( f64 x ) {
     return x * x;
 }
+// raise x to the power of exp
+inline constexpr f32 pow( f32 x, f32 exp ) {
+    return __builtin_powf( x, exp );
+}
+// raise x to the power of exp
+inline constexpr f64 pow( f64 x, f64 exp ) {
+    return __builtin_pow( x, exp );
+}
+// raise x to the power of exp
+inline constexpr f32 powi( f32 x, i32 exp ) {
+    return __builtin_powif( x, exp );
+}
+// raise x to the power of exp
+inline constexpr f64 powi( f64 x, i32 exp ) {
+    return __builtin_powi( x, exp );
+}
 
 /// @brief Clamp an int between min and max values
 /// @param value value to clamp
@@ -617,9 +633,10 @@ struct vec2;
 struct vec3;
 struct vec4;
 struct quat;
+struct mat2;
 struct mat3;
 struct mat4;
-// TODO(alicia): MAT3, MAT4
+// TODO(alicia): MAT2, MAT4
 
 vec2 operator+( const vec2& lhs, const vec2& rhs );
 vec2 operator-( const vec2& lhs, const vec2& rhs );
@@ -663,17 +680,24 @@ struct vec2 {
         struct { f32 u, v; };
     };
 
-    vec2() {}
+    vec2() : x(0.0f), y(0.0f) {}
     vec2( f32 scalar ) : x(scalar), y(scalar) {}
     vec2( f32 x, f32 y ) : x(x), y(y) {}
 
-    // get pointer to struct as f32 
-    f32* ptr() { return (f32*)this; }
+    // get pointer to struct as f32
+    f32* ptr() { return &x; }
+    // get pointer to struct as f32
+    const f32* ptr() const { return &x; }
 
+    f32& operator[]( usize index ) {
+        return ptr()[index];
+    }
+    f32 operator[]( usize index ) const {
+        return ptr()[index];
+    }
     vec2& operator-() { return *this *= -1.0f; }
     bool operator==( const vec2& rhs ) { return cmp( *this, rhs ); }
     bool operator!=( const vec2& rhs ) { return !(*this == rhs); }
-
     vec2& operator+=( const vec2& rhs ) {
         // NOTE(alicia): SSE
 
@@ -865,14 +889,23 @@ struct vec3 {
         struct { f32 r, g, b; };
     };
 
-    vec3() {}
+    vec3() : x(0.0f), y(0.0f), z(0.0f) {}
     vec3( f32 scalar ) : x(scalar), y(scalar), z(scalar) {}
     vec3( const vec2& v ) : x(v.x), y(v.y), z(0.0f) {}
+    vec3( const vec4& v );
     vec3( f32 x, f32 y, f32 z ) : x(x), y(y), z(z) {}
 
-    // get pointer to struct as f32 
-    f32* ptr() { return (f32*)this; }
+    // get pointer to struct as f32
+    f32* ptr() { return &x; }
+    // get pointer to struct as f32
+    const f32* ptr() const { return &x; }
 
+    f32& operator[]( usize index ) {
+        return ptr()[index];
+    }
+    f32 operator[]( usize index ) const {
+        return ptr()[index];
+    }
     vec3& operator-() { return *this *= -1.0f; }
     bool operator==( const vec3& rhs ) { return cmp( *this, rhs ); }
     bool operator!=( const vec3& rhs ) { return !(*this == rhs); }
@@ -1078,15 +1111,23 @@ struct vec4 {
         struct { f32 r, g, b, a; };
     };
 
-    vec4() {}
+    vec4() : x(0.0f), y(0.0f), z(0.0f), w(0.0f) {}
     vec4( f32 scalar ) : x(scalar), y(scalar), z(scalar), w(scalar) {}
     vec4( const vec2& v ) : x(v.x), y(v.y), z(0.0f), w(0.0f) {}
     vec4( const vec3& v ) : x(v.x), y(v.y), z(v.z), w(1.0f) {}
     vec4( f32 x, f32 y, f32 z, f32 w ) : x(x), y(y), z(z), w(w) {}
 
-    // get pointer to struct as f32 
-    f32* ptr() { return (f32*)this; }
+    // get pointer to struct as f32
+    f32* ptr() { return &x; }
+    // get pointer to struct as f32
+    const f32* ptr() const { return &x; }
 
+    f32& operator[]( usize index ) {
+        return ptr()[index];
+    }
+    f32 operator[]( usize index ) const {
+        return ptr()[index];
+    }
     vec4& operator-() { return *this *= -1.0f; }
     bool operator==( const vec4& rhs ) { return cmp( *this, rhs ); }
     bool operator!=( const vec4& rhs ) { return !(*this == rhs); }
@@ -1247,13 +1288,21 @@ struct quat {
         struct { f32 a, b, c, d; };
     };
 
-    quat() {}
+    quat() : w(0.0f), x(0.0f), y(0.0f), z(0.0f) {}
     quat( const vec4& v ) : w(v.w), x(v.x), y(v.y), z(v.z) {}
     quat( f32 w, f32 x, f32 y, f32 z ) : w(w), x(x), y(y), z(z) {}
 
-    // get pointer to struct as f32 
-    f32* ptr() { return (f32*)this; }
+    // get pointer to struct as f32
+    f32* ptr() { return &w; }
+    // get pointer to struct as f32
+    const f32* ptr() const { return &w; }
 
+    f32& operator[]( usize index ) {
+        return ptr()[index];
+    }
+    f32 operator[]( usize index ) const {
+        return ptr()[index];
+    }
     quat& operator-() { return *this *= -1.0f; }
     bool operator==( const quat& rhs ) { return cmp( *this, rhs ); }
     bool operator!=( const quat& rhs ) { return !(*this == rhs); }
@@ -1273,19 +1322,11 @@ struct quat {
         _mm_storeu_ps( this->ptr(), _mm_sub_ps( a, b ) );
         return *this;
     }
-    quat& operator*=( const quat& rhs ) {
-        // TODO(alicia): SIMD
-        this->w = ( this->w * rhs.w ) - ( (this->x * rhs.x) + (this->y * rhs.y) + (this->z * rhs.z) );
-        this->x = ( this->w * rhs.x ) + ( (rhs.w * this->x) + ( (this->y * rhs.z) - (this->z * rhs.y) ) );
-        this->y = ( this->w * rhs.y ) + ( (rhs.w * this->y) + ( (this->z * rhs.x) - (this->x * rhs.z) ) );
-        this->x = ( this->w * rhs.z ) + ( (rhs.w * this->z) + ( (this->x * rhs.y) - (this->y * rhs.x) ) );
-        return *this;
-    }
     quat& operator*=( const f32& rhs ) {
         // NOTE(alicia): SSE
 
         __m128 a = _mm_set_ps( this->z, this->y, this->x, this->w );
-        __m128 b = _mm_set_ps( rhs, rhs, rhs, rhs );
+        __m128 b = _mm_set1_ps(rhs);
         _mm_storeu_ps( this->ptr(), _mm_mul_ps( a, b ) );
         return *this;
     }
@@ -1293,7 +1334,7 @@ struct quat {
         // NOTE(alicia): SSE
 
         __m128 a = _mm_set_ps( this->z, this->y, this->x, this->w );
-        __m128 b = _mm_set_ps( rhs, rhs, rhs, rhs );
+        __m128 b = _mm_set1_ps( rhs );
         _mm_storeu_ps( this->ptr(), _mm_div_ps( a, b ) );
         return *this;
     }
@@ -1321,10 +1362,12 @@ struct quat {
     /// @param euler [out] euler angles
     void toEuler( vec3& euler ) {
         // TODO(alicia): SIMD!
-
-        euler.x = atan2( 2.0f * ( w * x + y * z ), 1.0f - 2.0f * ( x * x + y * y ) );
+        f32 x2 = x * x;
+        f32 y2 = y * y;
+        f32 z2 = z * z;
+        euler.x = atan2( 2.0f * ( w * x + y * z ), 1.0f - 2.0f * ( x2 + y2 ) );
         euler.y = asinNoNaN( 2.0f * ( ( w * y ) - ( z * x ) ) );
-        euler.z = atan2( 2.0f * ( w * z + x * y ), 1.0f - 2.0f * ( y * y + z * z ) );
+        euler.z = atan2( 2.0f * ( w * z + x * y ), 1.0f - 2.0f * ( y2 + z2 ) );
     }
     // identity quaternion
     static quat identity() { return { 1.0f, 0.0f, 0.0f, 0.0f }; }
@@ -1355,16 +1398,18 @@ struct quat {
         f32 halfZ = z / 2.0f;
 
         f32 xSin = sin( halfX );
-        f32 xCos = cos( halfX );
-
         f32 ySin = sin( halfY );
-        f32 yCos = cos( halfY );
-
         f32 zSin = sin( halfZ );
+
+        f32 xCos = cos( halfX );
+        f32 yCos = cos( halfY );
         f32 zCos = cos( halfZ );
 
+        f32 xyzCos = xCos * yCos * zCos;
+        f32 xyzSin = xSin * ySin * zSin;
+
         return {
-            ( xCos * yCos * zCos ) + ( xSin * ySin * zSin ),
+            ( xyzCos ) + ( xyzSin ),
 
             ( xSin * yCos * zCos ) + ( xCos * ySin * zSin ),
             ( xCos * ySin * zCos ) + ( xSin * yCos * zSin ),
@@ -1383,12 +1428,41 @@ inline quat operator-( const quat& lhs, const quat& rhs ) {
     return quat(lhs) -= rhs;
 }
 quat operator*( const quat& lhs, const quat& rhs ) {
-    return quat(lhs) *= rhs;
+    // NOTE(alicia): SSE
+    // TODO(alicia): optimize this!
+
+    quat result = {};
+
+    __m128 _aa = _mm_set1_ps( lhs.w );
+    __m128 _ab = _mm_set_ps( rhs.z, rhs.y, rhs.x, rhs.w );
+    __m128 _a  = _mm_mul_ps( _aa, _ab );
+
+    __m128 _ba = _mm_set_ps( lhs.z, lhs.y, lhs.x, lhs.x );
+    __m128 _bb = _mm_set_ps( rhs.w, rhs.w, rhs.w, rhs.x );
+    __m128 _b  = _mm_mul_ps( _ba, _bb );
+
+    __m128 _ca = _mm_set_ps( lhs.x, lhs.z, lhs.y, lhs.y );
+    __m128 _cb = _mm_set_ps( rhs.y, rhs.x, rhs.z, rhs.y );
+    __m128 _c  = _mm_mul_ps( _ca, _cb );
+
+    __m128 _da = _mm_set_ps( lhs.y, lhs.x, lhs.z, lhs.z );
+    __m128 _db = _mm_set_ps( rhs.x, rhs.z, rhs.y, rhs.z );
+    f32 _d[4];
+    _mm_storeu_ps( _d, _mm_mul_ps( _da, _db ) );
+
+    __m128 _e = _mm_sub_ps( _c, _mm_set_ps( _d[3], _d[2], _d[1], -_d[0] ) );
+
+    f32 _f[4];
+    _mm_storeu_ps( _f, _mm_add_ps( _b, _e ) );
+
+    _mm_storeu_ps( result.ptr(), _mm_add_ps( _a, _mm_set_ps( _f[3], _f[2], _f[1], -_f[0] ) ) );
+    return result;
+
 }
 vec3 operator*( const quat& lhs, const vec3& rhs ) {
-    quat p = { 0.0f, rhs.x, rhs.y, rhs.z };
-    quat result = lhs * p * conjugate( lhs );
-    return { result.x, result.y, result.z };
+    smath::vec3 qxyz = { lhs.x, lhs.y, lhs.z };
+    smath::vec3 t = 2.0f * smath::cross( qxyz, rhs );
+    return rhs + t * lhs.w + smath::cross( qxyz, t );
 }
 inline quat operator*( const quat& lhs, f32 rhs ) {
     return quat(lhs) *= rhs;
@@ -1471,4 +1545,689 @@ inline quat clampedSlerp( const quat& a, const quat& b, f32 t ) {
     return slerp( a, b, clamp( t, 0.0f, 1.0f ) );
 }
 
+mat3 operator+( const mat3& lhs, const mat3& rhs );
+mat3 operator-( const mat3& lhs, const mat3& rhs );
+mat3 operator*( const mat3& lhs, const mat3& rhs );
+mat3 operator*( const mat3& lhs, f32 rhs );
+mat3 operator*( f32 lhs, const mat3& rhs );
+mat3 operator/( const mat3& lhs, f32 rhs );
+// column-major matrix as row-major
+inline mat3 transpose( const mat3& m );
+// determinant of a matrix
+inline f32 determinant( const mat3& m );
+// column-major 3x3 matrix
+struct mat3 {
+    f32 _m00, _m01, _m02;
+    f32 _m10, _m11, _m12;
+    f32 _m20, _m21, _m22;
+
+    mat3()
+    : _m00(0.0f), _m01(0.0f), _m02(0.0f),
+      _m10(0.0f), _m11(0.0f), _m12(0.0f),
+      _m20(0.0f), _m21(0.0f), _m22(0.0f) {}
+    mat3(
+        f32 _m00, f32 _m01, f32 _m02,
+        f32 _m10, f32 _m11, f32 _m12,
+        f32 _m20, f32 _m21, f32 _m22
+    ) : _m00(_m00), _m01(_m01), _m02(_m02),
+        _m10(_m10), _m11(_m11), _m12(_m12),
+        _m20(_m20), _m21(_m21), _m22(_m22) {}
+    mat3( const mat4& m );
+
+    // get pointer to struct as f32
+    f32* ptr() { return &_m00; }
+    // get pointer to struct as f32
+    const f32* ptr() const { return &_m00; }
+
+    // collect column into buffer.
+    // buffer must be able to hold 3 elements and column index must be between [0-2].
+    void collectColumn( usize column, f32* buffer ) {
+        for( usize i = 0; i < 3; ++i ) {
+            buffer[i] = (*this)[column + (i * 3)];
+        }
+    }
+    // collect row into buffer.
+    // buffer must be able to hold 3 elements and row index must be between [0-2].
+    void collectRow( usize row, f32* buffer ) {
+        for( usize i = 0; i < 3; ++i ) {
+            buffer[i] = (*this)[(row * 3) + i];
+        }
+    }
+
+    f32& operator[]( usize index ) {
+        return ptr()[index];
+    }
+    f32 operator[]( usize index ) const {
+        return ptr()[index];
+    }
+    mat3& operator+=( const mat3& rhs ) {
+        __m128 _lhs1 = _mm_load_ps( ptr() );
+        __m128 _lhs2 = _mm_load_ps( &ptr()[4] );
+
+        __m128 _rhs1 = _mm_load_ps( &rhs.ptr()[0] );
+        __m128 _rhs2 = _mm_load_ps( &rhs.ptr()[4] );
+
+        _mm_storeu_ps( ptr(), _mm_add_ps( _lhs1, _rhs1 ) );
+        _mm_storeu_ps( &ptr()[4], _mm_add_ps( _lhs2, _rhs2 ) );
+
+        ptr()[8] += rhs[8];
+        return *this;
+    }
+    mat3& operator-=( const mat3& rhs ) {
+        __m128 _lhs1 = _mm_load_ps( ptr() );
+        __m128 _lhs2 = _mm_load_ps( &ptr()[4] );
+
+        __m128 _rhs1 = _mm_load_ps( &rhs.ptr()[0] );
+        __m128 _rhs2 = _mm_load_ps( &rhs.ptr()[4] );
+
+        _mm_storeu_ps( ptr(), _mm_sub_ps( _lhs1, _rhs1 ) );
+        _mm_storeu_ps( &ptr()[4], _mm_sub_ps( _lhs2, _rhs2 ) );
+
+        ptr()[8] -= rhs[8];
+        return *this;
+    }
+    mat3& operator*=( const f32& rhs ) {
+        __m128 _lhs1 = _mm_load_ps( ptr() );
+        __m128 _lhs2 = _mm_load_ps( &ptr()[4] );
+
+        __m128 _rhs = _mm_set1_ps( rhs );
+
+        _mm_storeu_ps( ptr(), _mm_mul_ps( _lhs1, _rhs ) );
+        _mm_storeu_ps( &ptr()[4], _mm_mul_ps( _lhs2, _rhs ) );
+
+        ptr()[8] *= rhs;
+        return *this;
+    }
+    mat3& operator/=( const f32& rhs ) {
+        __m128 _lhs1 = _mm_load_ps( ptr() );
+        __m128 _lhs2 = _mm_load_ps( &ptr()[4] );
+
+        __m128 _rhs = _mm_set1_ps( rhs );
+
+        _mm_storeu_ps( ptr(), _mm_div_ps( _lhs1, _rhs ) );
+        _mm_storeu_ps( &ptr()[4], _mm_div_ps( _lhs2, _rhs ) );
+
+        ptr()[8] /= rhs;
+        return *this;
+    }
+
+    // zero matrix
+    static mat3 zero() { return {}; }
+    // identity matrix
+    static mat3 identity() {
+        mat3 result = {};
+        result[0] = 1.0f;
+        result[4] = 1.0f;
+        result[8] = 1.0f;
+        return result;
+    }
+    // normal matrix, return true if it's possible to construct
+    static bool normalMat( const mat4& transform, mat3& result );
+};
+inline mat3 operator+( const mat3& lhs, const mat3& rhs ) {
+    return mat3(lhs) += rhs;
+}
+inline mat3 operator-( const mat3& lhs, const mat3& rhs ) {
+    return mat3(lhs) -= rhs;
+}
+inline mat3 operator*( const mat3& lhs, f32 rhs ) {
+    return mat3(lhs) *= rhs;
+}
+inline mat3 operator*( f32 lhs, const mat3& rhs ) {
+    return mat3(rhs) *= lhs;
+}
+inline mat3 operator/( const mat3& lhs, f32 rhs ) {
+    return mat3(lhs) /= rhs;
+}
+inline mat3 operator*( const mat3& lhs, const mat3& rhs ) {
+    // NOTE(alicia): SSE
+    smath::mat3 tlhs = transpose(lhs);
+    smath::mat3 result = {};
+
+    __m128 _tlhs[3];
+    _tlhs[0] = _mm_set_ps( 0.0f, tlhs[2], tlhs[1], tlhs[0] );
+    _tlhs[1] = _mm_set_ps( 0.0f, tlhs[5], tlhs[4], tlhs[3] );
+    _tlhs[2] = _mm_set_ps( 0.0f, tlhs[8], tlhs[7], tlhs[6] );
+    
+    __m128 _mul[9];
+    for( usize i = 0; i < 9; ++i ) {
+        _mul[i] = _mm_mul_ps( _tlhs[i%3], _mm_set1_ps( rhs[i] ) );
+    }
+
+    for( usize i = 0; i < 9; i += 3 ) {
+        f32 _add[4];
+        _mm_storeu_ps( _add, _mm_add_ps( _mm_add_ps( _mul[i + 0], _mul[i + 1] ), _mul[i + 2] ) );
+        result[i + 0] = _add[0];
+        result[i + 1] = _add[1];
+        result[i + 2] = _add[2];
+    }
+
+    return result;
+}
+inline mat3 transpose( const mat3& m ) {
+    return {
+        m[0], m[3], m[6],
+        m[1], m[4], m[7],
+        m[2], m[5], m[8]
+    };
+}
+inline f32 determinant( const mat3& m ) {
+    // NOTE(alicia): SSE
+
+    __m128 _a = _mm_set_ps( 0.0f, m[6], m[3], m[0] );
+    __m128 _ba = _mm_set_ps( 0.0f, m[1], m[1], m[4] );
+    __m128 _bb = _mm_set_ps( 0.0f, m[5], m[8], m[8] );
+    __m128 _b = _mm_mul_ps( _ba, _bb );
+
+    __m128 _ca = _mm_set_ps( 0.0f, m[7], m[7], m[4] );
+    __m128 _cb = _mm_set_ps( 0.0f, m[2], m[5], m[5] );
+    __m128 _c = _mm_mul_ps( _ca, _cb );
+
+    f32 _result[4];
+    _mm_storeu_ps( _result, _mm_mul_ps( _a, _mm_sub_ps( _b, _c ) ) );
+    return _result[0] - _result[1] + _result[2];
+
+    // before SIMD
+    // return
+    // ( m[0] * ( ( m[4] * m[8] ) - ( m[7] * m[5] ) ) ) -
+    // ( m[3] * ( ( m[1] * m[8] ) - ( m[7] * m[2] ) ) ) +
+    // ( m[6] * ( ( m[1] * m[5] ) - ( m[4] * m[2] ) ) );
+}
+
+mat4 operator+( const mat4& lhs, const mat4& rhs );
+mat4 operator-( const mat4& lhs, const mat4& rhs );
+mat4 operator*( const mat4& lhs, const mat4& rhs );
+vec4 operator*( const mat4& lhs, const vec4& rhs );
+vec3 operator*( const mat4& lhs, const vec3& rhs );
+mat4 operator*( const mat4& lhs, f32 rhs );
+mat4 operator*( f32 lhs, const mat4& rhs );
+mat4 operator/( const mat4& lhs, f32 rhs );
+// column-major matrix as row-major
+inline mat4 transpose( const mat4& m );
+// 3x3 submatrix at given column/row
+inline mat3 submatrix( usize column, usize row, const mat4& m );
+// minor of given column/row
+inline f32 minor( usize column, usize row, const mat4& m );
+// cofactor of given column/row
+inline f32 cofactor( usize column, usize row, const mat4& m );
+// cofactor matrix of matrix
+inline mat4 cofactormat( const mat4& m );
+// adjoint of matrix
+inline mat4 adjoint( const mat4& m );
+// determinant of matrix
+inline f32 determinant( const mat4& m );
+/// @brief inverse of matrx
+/// @param m input matrix
+/// @param result [out] result
+/// @return true if determinant is not zero
+inline bool inverse( const mat4& m, mat4& result );
+// column-major 4x4 matrix
+struct mat4 {
+    f32 _m00, _m01, _m02, _m03;
+    f32 _m10, _m11, _m12, _m13;
+    f32 _m20, _m21, _m22, _m23;
+    f32 _m30, _m31, _m32, _m33;
+
+    mat4()
+    :_m00(0.0f), _m01(0.0f), _m02(0.0f), _m03(0.0f),
+     _m10(0.0f), _m11(0.0f), _m12(0.0f), _m13(0.0f),
+     _m20(0.0f), _m21(0.0f), _m22(0.0f), _m23(0.0f),
+     _m30(0.0f), _m31(0.0f), _m32(0.0f), _m33(0.0f) {}
+    mat4(
+        f32 _m00, f32 _m01, f32 _m02, f32 _m03,
+        f32 _m10, f32 _m11, f32 _m12, f32 _m13,
+        f32 _m20, f32 _m21, f32 _m22, f32 _m23,
+        f32 _m30, f32 _m31, f32 _m32, f32 _m33
+    )
+    :_m00(_m00), _m01(_m01), _m02(_m02), _m03(_m03),
+     _m10(_m10), _m11(_m11), _m12(_m12), _m13(_m13),
+     _m20(_m20), _m21(_m21), _m22(_m22), _m23(_m23),
+     _m30(_m30), _m31(_m31), _m32(_m32), _m33(_m33) {}
+
+    // get pointer to struct as f32
+    f32* ptr() { return &_m00; }
+    // get pointer to struct as f32
+    const f32* ptr() const { return &_m00; }
+
+    // collect column into buffer.
+    // buffer must be able to hold 4 elements and column index must be between [0-3].
+    void collectColumn( usize column, f32* buffer ) {
+        for( usize i = 0; i < 4; ++i ) {
+            buffer[i] = (*this)[column + (i * 4)];
+        }
+    }
+    // collect row into buffer.
+    // buffer must be able to hold 4 elements and row index must be between [0-3].
+    void collectRow( usize row, f32* buffer ) {
+        for( usize i = 0; i < 4; ++i ) {
+            buffer[i] = (*this)[(row * 4) + i];
+        }
+    }
+
+    f32& operator[]( usize index ) {
+        return ptr()[index];
+    }
+    f32 operator[]( usize index ) const {
+        return ptr()[index];
+    }
+    mat4& operator+=( const mat4& rhs ) {
+        // TODO(alicia): AVX
+        // NOTE(alicia): SSE
+        __m128 _lhsCol1 = _mm_load_ps( &ptr()[0] );
+        __m128 _lhsCol2 = _mm_load_ps( &ptr()[4] );
+        __m128 _lhsCol3 = _mm_load_ps( &ptr()[8] );
+        __m128 _lhsCol4 = _mm_load_ps( &ptr()[12] );
+
+        __m128 _rhsCol1 = _mm_load_ps( &rhs.ptr()[0] );
+        __m128 _rhsCol2 = _mm_load_ps( &rhs.ptr()[4] );
+        __m128 _rhsCol3 = _mm_load_ps( &rhs.ptr()[8] );
+        __m128 _rhsCol4 = _mm_load_ps( &rhs.ptr()[12] );
+
+        _mm_storeu_ps( &ptr()[ 0], _mm_add_ps( _lhsCol1, _rhsCol1 ) );
+        _mm_storeu_ps( &ptr()[ 4], _mm_add_ps( _lhsCol2, _rhsCol2 ) );
+        _mm_storeu_ps( &ptr()[ 8], _mm_add_ps( _lhsCol3, _rhsCol3 ) );
+        _mm_storeu_ps( &ptr()[12], _mm_add_ps( _lhsCol4, _rhsCol4 ) );
+        
+        return *this;
+    }
+    mat4& operator-=( const mat4& rhs ) {
+        // TODO(alicia): AVX
+        // NOTE(alicia): SSE
+        __m128 _lhsCol1 = _mm_load_ps( &ptr()[0] );
+        __m128 _lhsCol2 = _mm_load_ps( &ptr()[4] );
+        __m128 _lhsCol3 = _mm_load_ps( &ptr()[8] );
+        __m128 _lhsCol4 = _mm_load_ps( &ptr()[12] );
+
+        __m128 _rhsCol1 = _mm_load_ps( &rhs.ptr()[0] );
+        __m128 _rhsCol2 = _mm_load_ps( &rhs.ptr()[4] );
+        __m128 _rhsCol3 = _mm_load_ps( &rhs.ptr()[8] );
+        __m128 _rhsCol4 = _mm_load_ps( &rhs.ptr()[12] );
+
+        _mm_storeu_ps( &ptr()[ 0], _mm_sub_ps( _lhsCol1, _rhsCol1 ) );
+        _mm_storeu_ps( &ptr()[ 4], _mm_sub_ps( _lhsCol2, _rhsCol2 ) );
+        _mm_storeu_ps( &ptr()[ 8], _mm_sub_ps( _lhsCol3, _rhsCol3 ) );
+        _mm_storeu_ps( &ptr()[12], _mm_sub_ps( _lhsCol4, _rhsCol4 ) );
+        return *this;
+    }
+    mat4& operator*=( const f32& rhs ) {
+        // TODO(alicia): AVX
+        // NOTE(alicia): SSE
+        __m128 _lhsCol1 = _mm_load_ps( &ptr()[0] );
+        __m128 _lhsCol2 = _mm_load_ps( &ptr()[4] );
+        __m128 _lhsCol3 = _mm_load_ps( &ptr()[8] );
+        __m128 _lhsCol4 = _mm_load_ps( &ptr()[12] );
+
+        __m128 _rhs = _mm_set1_ps( rhs );
+
+        _mm_storeu_ps( &ptr()[ 0], _mm_mul_ps( _lhsCol1, _rhs ) );
+        _mm_storeu_ps( &ptr()[ 4], _mm_mul_ps( _lhsCol2, _rhs ) );
+        _mm_storeu_ps( &ptr()[ 8], _mm_mul_ps( _lhsCol3, _rhs ) );
+        _mm_storeu_ps( &ptr()[12], _mm_mul_ps( _lhsCol4, _rhs ) );
+        return *this;
+    }
+    mat4& operator/=( const f32& rhs ) {
+        // TODO(alicia): AVX
+        // NOTE(alicia): SSE
+        __m128 _lhsCol1 = _mm_load_ps( &ptr()[0] );
+        __m128 _lhsCol2 = _mm_load_ps( &ptr()[4] );
+        __m128 _lhsCol3 = _mm_load_ps( &ptr()[8] );
+        __m128 _lhsCol4 = _mm_load_ps( &ptr()[12] );
+
+        __m128 _rhs = _mm_set1_ps( rhs );
+
+        _mm_storeu_ps( &ptr()[ 0], _mm_div_ps( _lhsCol1, _rhs ) );
+        _mm_storeu_ps( &ptr()[ 4], _mm_div_ps( _lhsCol2, _rhs ) );
+        _mm_storeu_ps( &ptr()[ 8], _mm_div_ps( _lhsCol3, _rhs ) );
+        _mm_storeu_ps( &ptr()[12], _mm_div_ps( _lhsCol4, _rhs ) );
+        return *this;
+    }
+
+    static mat4 zero() { return {}; }
+    // identity matrix
+    static mat4 identity() {
+        mat4 result = {};
+        result[ 0] = 1.0f;
+        result[ 5] = 1.0f;
+        result[10] = 1.0f;
+        result[15] = 1.0f;
+        return result;
+    }
+    // look at matrix
+    static mat4 lookAt( const vec3& position, const vec3& target, const vec3& up ) {
+        smath::vec3 z = smath::normalize( target - position );
+        // TODO(alicia): check if this needs to be normalized if up is normalized
+        smath::vec3 x = smath::normalize( smath::cross( z, up ) );
+        smath::vec3 y = smath::cross( x, z );
+
+        z = -z;
+        return {
+            x[0], y[0], z[0], 0.0f,
+            x[1], y[1], z[1], 0.0f,
+            x[2], y[2], z[2], 0.0f,
+
+            -smath::dot( x, position ),
+            -smath::dot( y, position ),
+            -smath::dot( z, position ),
+            1.0f
+        };
+    }
+    // orthographic projection
+    static mat4 ortho( f32 left, f32 right, f32 bottom, f32 top, f32 _near, f32 _far ) {
+        smath::mat4 result = smath::mat4::identity();
+        __m128 _a = _mm_set_ps( 0.0f, _far, top, right );
+        __m128 _b = _mm_set_ps( 0.0f, _near, bottom, left );
+        __m128 _add = _mm_add_ps( _a, _b );
+        __m128 _sub = _mm_sub_ps( _a, _b );
+
+        __m128 _c = _mm_set_ps( 0.0f, -2.0f, 2.0f, 2.0f );
+        f32 _div[4];
+        _mm_storeu_ps( _div, _mm_div_ps( _c, _sub ) );
+
+        _add = _mm_mul_ps( _add, _mm_set1_ps( -1.0f ) );
+        f32 _div2[4];
+        _mm_storeu_ps( _div2, _mm_div_ps( _add, _sub ) );
+
+        result[ 0] = _div[0];
+        result[ 5] = _div[1];
+        result[10] = _div[2];
+        result[12] = _div2[0];
+        result[13] = _div2[1];
+        result[14] = _div2[2];
+        return result;
+    }
+    // orthographic projection
+    static mat4 ortho( f32 left, f32 right, f32 bottom, f32 top ) {
+        return mat4::ortho( left, right, bottom, top, -1.0f, 1.0f );
+    }
+    // perspective projection ( fov is in radians )
+    static mat4 perspective( f32 fov, f32 aspect, f32 _near, f32 _far ) {
+        smath::mat4 result = {};
+
+        f32 halfFovTan   = tan( fov / 2.0f );
+        f32 farMinusNear = _far - _near;
+        result[ 0] = 1.0f / ( aspect * halfFovTan );
+        result[ 5] = 1.0f / halfFovTan;
+        result[10] = -( ( _far + _near ) / farMinusNear );
+        result[11] = -1.0f;
+        result[14] = -( ( 2.0f * _far * _near ) / farMinusNear );
+
+        return result;
+    }
+    // translation matrix
+    static mat4 translate( f32 x, f32 y, f32 z ) {
+        smath::mat4 result = smath::mat4::identity();
+        result[12] = x;
+        result[13] = y;
+        result[14] = z;
+        return result;
+    }
+    // translation matrix
+    static mat4 translate( const vec3& t ) {
+        return smath::mat4::translate( t.x, t.y, t.z );
+    }
+    // rotation matrix
+    static mat4 rotation( f32 w, f32 x, f32 y, f32 z ) {
+        // NOTE(alicia): SSE
+        // TODO(alicia): further optimize
+        smath::mat4 result = smath::mat4::identity();
+
+        __m128 _xyzz = _mm_set_ps( z, z, y, x );
+        f32 _sqrxyz_2[4];
+        _mm_storeu_ps( _sqrxyz_2, _mm_mul_ps(_mm_mul_ps( _xyzz, _xyzz ), _mm_set1_ps(2.0f)) );
+
+        f32 xy_2 = 2.0f * (x * y);
+        f32 xz_2 = 2.0f * (x * z);
+
+
+        f32 wx = w * x;
+        f32 wy = w * y;
+        f32 wz = w * z;
+        f32 yz = y * z;
+        f32 _wxyz_yz_2[4];
+        _mm_storeu_ps(
+            _wxyz_yz_2,
+            _mm_mul_ps(
+                _mm_mul_ps( _xyzz, _mm_set_ps( y, w, w, w ) ),
+                _mm_set1_ps( 2.0f )
+            )
+        );
+
+        result[0]  = 1.0f - _sqrxyz_2[1] - _sqrxyz_2[2];
+        result[1]  = xy_2 + _wxyz_yz_2[2];
+        result[2]  = xz_2 - _wxyz_yz_2[1];
+
+        result[4]  = xy_2 - _wxyz_yz_2[2];
+        result[5]  = 1.0f - _sqrxyz_2[0] - _sqrxyz_2[2];
+        result[6]  = _wxyz_yz_2[3] + _wxyz_yz_2[0];
+
+        result[8]  = xz_2 + _wxyz_yz_2[1];
+        result[9]  = _wxyz_yz_2[3] - _wxyz_yz_2[0];
+        result[10] = 1.0f - _sqrxyz_2[0] - _sqrxyz_2[1];
+
+        return result;
+    }
+    // rotation matrix
+    static mat4 rotation( const quat& r ) {
+        return smath::mat4::rotation( r );
+    }
+    // euler x rotation matrix
+    static mat4 rotationX( f32 thetaX ) {
+        smath::mat4 result = smath::mat4::identity();
+        f32 thetaSin = sin(thetaX);
+        f32 thetaCos = cos(thetaX);
+        result[ 5] =  thetaCos;
+        result[ 6] =  thetaSin;
+        result[ 9] = -thetaSin;
+        result[10] =  thetaCos;
+        return result;
+    }
+    // euler y rotation matrix
+    static mat4 rotationY( f32 thetaY ) {
+        smath::mat4 result = smath::mat4::identity();
+        f32 thetaSin = sin(thetaY);
+        f32 thetaCos = cos(thetaY);
+        result[ 0] =  thetaCos;
+        result[ 2] = -thetaSin;
+        result[ 8] =  thetaSin;
+        result[10] =  thetaCos;
+        return result;
+    }
+    // euler z rotation matrix
+    static mat4 rotationZ( f32 thetaZ ) {
+        smath::mat4 result = smath::mat4::identity();
+        f32 thetaSin = sin(thetaZ);
+        f32 thetaCos = cos(thetaZ);
+        result[0] =  thetaCos;
+        result[1] =  thetaSin;
+        result[4] = -thetaSin;
+        result[5] =  thetaCos;
+        return result;
+    }
+    // rotation matrix from euler angles, radians
+    static mat4 rotation( f32 x, f32 y, f32 z ) {
+        return smath::mat4::rotationX(x) * smath::mat4::rotationY(y) * smath::mat4::rotationZ(z);
+    }
+    // rotation matrix from euler angles, radians
+    static mat4 rotation( const vec3& r ) {
+        return smath::mat4::rotation( r.x, r.y, r.z );
+    }
+    // scale matrix
+    static mat4 scale( f32 x, f32 y, f32 z ) {
+        smath::mat4 result = smath::mat4::identity();
+
+        result[ 0] = x;
+        result[ 5] = y;
+        result[10] = z;
+
+        return result;
+    }
+    // scale matrix
+    static mat4 scale( const vec3& s ) {
+        return smath::mat4::scale( s.x, s.y, s.z );
+    }
+    // transform matrix
+    static mat4 trs( const vec3& t, const quat& r, const vec3& s ) {
+        return smath::mat4::translate( t ) * smath::mat4::rotation( r ) * smath::mat4::scale( s );
+    }
+};
+inline mat4 operator+( const mat4& lhs, const mat4& rhs ) {
+    return mat4(lhs) += rhs;
+}
+inline mat4 operator-( const mat4& lhs, const mat4& rhs ) {
+    return mat4(lhs) -= rhs;
+}
+inline mat4 operator*( const mat4& lhs, f32 rhs ) {
+    return mat4(lhs) *= rhs;
+}
+inline mat4 operator*( f32 lhs, const mat4& rhs ) {
+    return mat4(rhs) *= lhs;
+}
+inline mat4 operator/( const mat4& lhs, f32 rhs ) {
+    return mat4(lhs) /= rhs;
+}
+inline mat4 operator*( const mat4& lhs, const mat4& rhs ) {
+    // TODO(alicia): AVX
+    // NOTE(alicia): SSE
+
+    smath::mat4 tlhs   = transpose(lhs);
+    smath::mat4 result = {};
+
+    __m128 _tlhs[4];
+    _tlhs[0] = _mm_load_ps( &tlhs.ptr()[0] );
+    _tlhs[1] = _mm_load_ps( &tlhs.ptr()[4] );
+    _tlhs[2] = _mm_load_ps( &tlhs.ptr()[8] );
+    _tlhs[3] = _mm_load_ps( &tlhs.ptr()[12] );
+
+    __m128 _mul[16];
+    for( usize i = 0; i < 16; ++i ) {
+        _mul[i] = _mm_mul_ps( _tlhs[ i % 4 ], _mm_set1_ps( rhs[i] ) );
+    }
+
+    for( usize i = 0; i < 16; i += 4 ) {
+        __m128 _add1 = _mm_add_ps( _mul[i + 0], _mul[i + 1] );
+        __m128 _add2 = _mm_add_ps( _mul[i + 2], _mul[i + 3] );
+        _mm_storeu_ps( &result.ptr()[i], _mm_add_ps( _add1, _add2 ) );
+    }
+    
+    return result;
+}
+vec4 operator*( const mat4& lhs, const vec4& rhs ) {
+    // TODO(alicia): AVX
+    // NOTE(alicia): SSE
+
+    smath::mat4 tlhs   = transpose(lhs);
+    smath::vec4 result = {};
+
+    __m128 _tlhs[4];
+    _tlhs[0] = _mm_load_ps( &tlhs.ptr()[0] );
+    _tlhs[1] = _mm_load_ps( &tlhs.ptr()[4] );
+    _tlhs[2] = _mm_load_ps( &tlhs.ptr()[8] );
+    _tlhs[3] = _mm_load_ps( &tlhs.ptr()[12] );
+
+    __m128 _mul[4];
+    for( usize i = 0; i < 4; ++i ) {
+        _mul[i] = _mm_mul_ps( _tlhs[i], _mm_set1_ps( rhs[i] ) );
+    }
+
+    __m128 _add1 = _mm_add_ps( _mul[0], _mul[1] );
+    __m128 _add2 = _mm_add_ps( _mul[2], _mul[3] );
+
+    _mm_storeu_ps( result.ptr(), _mm_add_ps( _add1, _add2 ) );
+    return result;
+}
+vec3 operator*( const mat4& lhs, const vec3& rhs ) {
+    return lhs * vec4(rhs);
+}
+inline mat4 transpose( const mat4& m ) {
+    return {
+        m[0], m[4], m[ 8], m[12],
+        m[1], m[5], m[ 9], m[13],
+        m[2], m[6], m[10], m[14],
+        m[3], m[7], m[11], m[15],
+    };
+}
+inline mat3 submatrix( usize column, usize row, const mat4& m ) {
+    smath::mat3 result = {};
+    usize i = 0;
+    for( usize c = 0; c < column; ++c ) {
+        if( c == column ) {
+            continue;
+        }
+        for( usize r = 0; r < row; ++r ) {
+            if( r == row ) {
+                continue;
+            }
+            result[i] = m[c + r];
+            ++i;
+        }
+    }
+    return result;
+}
+inline f32 minor( usize column, usize row, const mat4& m ) {
+    return determinant( submatrix( column, row, m ) );
+}
+inline f32 cofactor( usize column, usize row, const mat4& m ) {
+    f32 minor = smath::minor( column, row, m );
+    return minor * powi( -1.0f, ( row + 1 ) + ( column + 1 ) );
+}
+inline mat4 cofactormat( const mat4& m ) {
+    smath::mat4 result = {};
+    for( usize i = 0; i < 16; ++i ) {
+        usize row    = i / 4;
+        usize column = i % 4;
+        result[i] = smath::cofactor( column, row, m );
+    }
+
+    return transpose( result );
+}
+inline mat4 adjoint( const mat4& m ) {
+    smath::mat4 result = {};
+    for( usize i = 0; i < 16; ++i ) {
+        usize row    = i / 4;
+        usize column = i % 4;
+        result[i] = smath::cofactor( column, row, m );
+    }
+
+    return result;
+}
+inline f32 determinant( const mat4& m ) {
+    __m128 _a = _mm_set_ps( m[12], m[8], m[4], m[0] );
+    __m128 _b = _mm_set_ps(
+        determinant( submatrix( 0, 3, m ) ),
+        determinant( submatrix( 0, 2, m ) ),
+        determinant( submatrix( 0, 1, m ) ),
+        determinant( submatrix( 0, 0, m ) )
+    );
+    f32 _mul[4];
+    _mm_storeu_ps( _mul, _mm_mul_ps( _a, _b ) );
+    return _mul[0] - _mul[1] + _mul[2] - _mul[3];
+}
+inline bool inverse( const mat4& m, mat4& result ) {
+    // TODO(alicia): look into this more
+    f32 d = determinant(m);
+    if( d == 0.0f ) {
+        return false;
+    } else {
+        result = adjoint( m ) / d;
+        return true;
+    }
+}
+bool mat3::normalMat( const mat4& transform, mat3& result ) {
+    smath::mat4 inv = {};
+    if( smath::inverse( transform, inv ) ) {
+        result = smath::mat3( smath::transpose( inv ) );
+        return true;
+    } else {
+        return false;
+    }
+}
+
+// NOTE(alicia): conversions
+vec3::vec3( const vec4& v ) : x(v.x), y(v.y), z(v.z) {}
+mat3::mat3( const mat4& m )
+: _m00(m[0]), _m01(m[1]), _m02(m[2]),
+  _m10(m[4]), _m11(m[5]), _m12(m[6]),
+  _m20(m[8]), _m21(m[9]), _m22(m[10]) {}
+
 } // namespace smath
+

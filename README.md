@@ -16,6 +16,10 @@ Currently uses only SSE instructions for vector arithmetic.
 
 Download [smath.hpp](src/smath.hpp) and include it in your project.
 
+Requires
+- `cstdint` should already have it as every compiler includes this header
+- `immintrin.h` should already have it as every compiler includes this header
+
 ## Example
 ```cpp
 
