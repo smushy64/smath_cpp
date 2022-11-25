@@ -2211,7 +2211,7 @@ inline bool inverse( const mat4& m, mat4& result ) {
         return true;
     }
 }
-bool mat3::normalMat( const mat4& transform, mat3& result ) {
+inline bool mat3::normalMat( const mat4& transform, mat3& result ) {
     smath::mat4 inv = {};
     if( smath::inverse( transform, inv ) ) {
         result = smath::mat3( smath::transpose( inv ) );
