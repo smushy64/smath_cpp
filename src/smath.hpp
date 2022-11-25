@@ -636,13 +636,13 @@ struct quat;
 struct mat2;
 struct mat3;
 struct mat4;
-// TODO(alicia): MAT2, MAT4
+// TODO(alicia): MAT2
 
-vec2 operator+( const vec2& lhs, const vec2& rhs );
-vec2 operator-( const vec2& lhs, const vec2& rhs );
-vec2 operator*( const vec2& lhs, f32 rhs );
-vec2 operator*( f32 lhs, const vec2& rhs );
-vec2 operator/( const vec2& lhs, f32 rhs );
+inline vec2 operator+( const vec2& lhs, const vec2& rhs );
+inline vec2 operator-( const vec2& lhs, const vec2& rhs );
+inline vec2 operator*( const vec2& lhs, f32 rhs );
+inline vec2 operator*( f32 lhs, const vec2& rhs );
+inline vec2 operator/( const vec2& lhs, f32 rhs );
 // normalize vector 
 inline vec2 normalize( const vec2& v );
 // clamp vector length up to max, inclusive
@@ -843,11 +843,11 @@ inline vec2 clampedLerp( const vec2& a, const vec2& b, f32 t ) {
     return lerp( a, b, clamp( t, 0.0f, 1.0f ) );
 }
 
-vec3 operator+( const vec3& lhs, const vec3& rhs );
-vec3 operator-( const vec3& lhs, const vec3& rhs );
-vec3 operator*( const vec3& lhs, f32 rhs );
-vec3 operator*( f32 lhs, const vec3& rhs );
-vec3 operator/( const vec3& lhs, f32 rhs );
+inline vec3 operator+( const vec3& lhs, const vec3& rhs );
+inline vec3 operator-( const vec3& lhs, const vec3& rhs );
+inline vec3 operator*( const vec3& lhs, f32 rhs );
+inline vec3 operator*( f32 lhs, const vec3& rhs );
+inline vec3 operator/( const vec3& lhs, f32 rhs );
 // normalize vector 
 inline vec3 normalize( const vec3& v );
 // clamp vector length up to max, inclusive
@@ -1073,11 +1073,11 @@ inline vec3 clampedLerp( const vec3& a, const vec3& b, f32 t ) {
     return lerp( a, b, clamp( t, 0.0f, 1.0f ) );
 }
 
-vec4 operator+( const vec4& lhs, const vec4& rhs );
-vec4 operator-( const vec4& lhs, const vec4& rhs );
-vec4 operator*( const vec4& lhs, f32 rhs );
-vec4 operator*( f32 lhs, const vec4& rhs );
-vec4 operator/( const vec4& lhs, f32 rhs );
+inline vec4 operator+( const vec4& lhs, const vec4& rhs );
+inline vec4 operator-( const vec4& lhs, const vec4& rhs );
+inline vec4 operator*( const vec4& lhs, f32 rhs );
+inline vec4 operator*( f32 lhs, const vec4& rhs );
+inline vec4 operator/( const vec4& lhs, f32 rhs );
 // normalize vector 
 inline vec4 normalize( const vec4& v );
 // clamp vector length up to max, inclusive
@@ -1248,13 +1248,13 @@ inline vec4 clampedLerp( const vec4& a, const vec4& b, f32 t ) {
     return lerp( a, b, clamp( t, 0.0f, 1.0f ) );
 }
 
-quat operator+( const quat& lhs, const quat& rhs );
-quat operator-( const quat& lhs, const quat& rhs );
-quat operator*( const quat& lhs, const quat& rhs );
-vec3 operator*( const quat& lhs, const vec3& rhs );
-quat operator*( const quat& lhs, f32 rhs );
-quat operator*( f32 lhs, const quat& rhs );
-quat operator/( const quat& lhs, f32 rhs );
+inline quat operator+( const quat& lhs, const quat& rhs );
+inline quat operator-( const quat& lhs, const quat& rhs );
+inline quat operator*( const quat& lhs, const quat& rhs );
+inline vec3 operator*( const quat& lhs, const vec3& rhs );
+inline quat operator*( const quat& lhs, f32 rhs );
+inline quat operator*( f32 lhs, const quat& rhs );
+inline quat operator/( const quat& lhs, f32 rhs );
 // normalize quaternion 
 inline quat normalize( const quat& q );
 // compare two quaternions
@@ -1427,7 +1427,7 @@ inline quat operator+( const quat& lhs, const quat& rhs ) {
 inline quat operator-( const quat& lhs, const quat& rhs ) {
     return quat(lhs) -= rhs;
 }
-quat operator*( const quat& lhs, const quat& rhs ) {
+inline quat operator*( const quat& lhs, const quat& rhs ) {
     // NOTE(alicia): SSE
     // TODO(alicia): optimize this!
 
@@ -1459,7 +1459,7 @@ quat operator*( const quat& lhs, const quat& rhs ) {
     return result;
 
 }
-vec3 operator*( const quat& lhs, const vec3& rhs ) {
+inline vec3 operator*( const quat& lhs, const vec3& rhs ) {
     smath::vec3 qxyz = { lhs.x, lhs.y, lhs.z };
     smath::vec3 t = 2.0f * smath::cross( qxyz, rhs );
     return rhs + t * lhs.w + smath::cross( qxyz, t );
@@ -1545,12 +1545,12 @@ inline quat clampedSlerp( const quat& a, const quat& b, f32 t ) {
     return slerp( a, b, clamp( t, 0.0f, 1.0f ) );
 }
 
-mat3 operator+( const mat3& lhs, const mat3& rhs );
-mat3 operator-( const mat3& lhs, const mat3& rhs );
-mat3 operator*( const mat3& lhs, const mat3& rhs );
-mat3 operator*( const mat3& lhs, f32 rhs );
-mat3 operator*( f32 lhs, const mat3& rhs );
-mat3 operator/( const mat3& lhs, f32 rhs );
+inline mat3 operator+( const mat3& lhs, const mat3& rhs );
+inline mat3 operator-( const mat3& lhs, const mat3& rhs );
+inline mat3 operator*( const mat3& lhs, const mat3& rhs );
+inline mat3 operator*( const mat3& lhs, f32 rhs );
+inline mat3 operator*( f32 lhs, const mat3& rhs );
+inline mat3 operator/( const mat3& lhs, f32 rhs );
 // column-major matrix as row-major
 inline mat3 transpose( const mat3& m );
 // determinant of a matrix
@@ -1681,17 +1681,16 @@ inline mat3 operator/( const mat3& lhs, f32 rhs ) {
 }
 inline mat3 operator*( const mat3& lhs, const mat3& rhs ) {
     // NOTE(alicia): SSE
-    smath::mat3 tlhs = transpose(lhs);
     smath::mat3 result = {};
 
-    __m128 _tlhs[3];
-    _tlhs[0] = _mm_set_ps( 0.0f, tlhs[2], tlhs[1], tlhs[0] );
-    _tlhs[1] = _mm_set_ps( 0.0f, tlhs[5], tlhs[4], tlhs[3] );
-    _tlhs[2] = _mm_set_ps( 0.0f, tlhs[8], tlhs[7], tlhs[6] );
+    __m128 _lhs[3];
+    _lhs[0] = _mm_set_ps( 0.0f, lhs[2], lhs[1], lhs[0] );
+    _lhs[1] = _mm_set_ps( 0.0f, lhs[5], lhs[4], lhs[3] );
+    _lhs[2] = _mm_set_ps( 0.0f, lhs[8], lhs[7], lhs[6] );
     
     __m128 _mul[9];
     for( usize i = 0; i < 9; ++i ) {
-        _mul[i] = _mm_mul_ps( _tlhs[i%3], _mm_set1_ps( rhs[i] ) );
+        _mul[i] = _mm_mul_ps( _lhs[i%3], _mm_set1_ps( rhs[i] ) );
     }
 
     for( usize i = 0; i < 9; i += 3 ) {
@@ -1719,7 +1718,7 @@ inline f32 determinant( const mat3& m ) {
     __m128 _bb = _mm_set_ps( 0.0f, m[5], m[8], m[8] );
     __m128 _b = _mm_mul_ps( _ba, _bb );
 
-    __m128 _ca = _mm_set_ps( 0.0f, m[7], m[7], m[4] );
+    __m128 _ca = _mm_set_ps( 0.0f, m[4], m[7], m[7] );
     __m128 _cb = _mm_set_ps( 0.0f, m[2], m[5], m[5] );
     __m128 _c = _mm_mul_ps( _ca, _cb );
 
@@ -1734,14 +1733,14 @@ inline f32 determinant( const mat3& m ) {
     // ( m[6] * ( ( m[1] * m[5] ) - ( m[4] * m[2] ) ) );
 }
 
-mat4 operator+( const mat4& lhs, const mat4& rhs );
-mat4 operator-( const mat4& lhs, const mat4& rhs );
-mat4 operator*( const mat4& lhs, const mat4& rhs );
-vec4 operator*( const mat4& lhs, const vec4& rhs );
-vec3 operator*( const mat4& lhs, const vec3& rhs );
-mat4 operator*( const mat4& lhs, f32 rhs );
-mat4 operator*( f32 lhs, const mat4& rhs );
-mat4 operator/( const mat4& lhs, f32 rhs );
+inline mat4 operator+( const mat4& lhs, const mat4& rhs );
+inline mat4 operator-( const mat4& lhs, const mat4& rhs );
+inline mat4 operator*( const mat4& lhs, const mat4& rhs );
+inline vec4 operator*( const mat4& lhs, const vec4& rhs );
+inline vec3 operator*( const mat4& lhs, const vec3& rhs );
+inline mat4 operator*( const mat4& lhs, f32 rhs );
+inline mat4 operator*( f32 lhs, const mat4& rhs );
+inline mat4 operator/( const mat4& lhs, f32 rhs );
 // column-major matrix as row-major
 inline mat4 transpose( const mat4& m );
 // 3x3 submatrix at given column/row
@@ -1791,17 +1790,19 @@ struct mat4 {
 
     // collect column into buffer.
     // buffer must be able to hold 4 elements and column index must be between [0-3].
-    void collectColumn( usize column, f32* buffer ) {
-        for( usize i = 0; i < 4; ++i ) {
-            buffer[i] = (*this)[column + (i * 4)];
-        }
+    void collectColumn( usize column, f32* buffer ) const {
+        buffer[0] = ptr()[column * 4 + 0];
+        buffer[1] = ptr()[column * 4 + 1];
+        buffer[2] = ptr()[column * 4 + 2];
+        buffer[3] = ptr()[column * 4 + 3];
     }
     // collect row into buffer.
     // buffer must be able to hold 4 elements and row index must be between [0-3].
-    void collectRow( usize row, f32* buffer ) {
-        for( usize i = 0; i < 4; ++i ) {
-            buffer[i] = (*this)[(row * 4) + i];
-        }
+    void collectRow( usize row, f32* buffer ) const {
+        buffer[0] = ptr()[row + 0];
+        buffer[1] = ptr()[row + 4];
+        buffer[2] = ptr()[row + 8];
+        buffer[3] = ptr()[row + 12];
     }
 
     f32& operator[]( usize index ) {
@@ -1892,14 +1893,13 @@ struct mat4 {
         result[15] = 1.0f;
         return result;
     }
-    // look at matrix
+    // look at matrix, up must be a normalized vector
     static mat4 lookAt( const vec3& position, const vec3& target, const vec3& up ) {
         smath::vec3 z = smath::normalize( target - position );
-        // TODO(alicia): check if this needs to be normalized if up is normalized
-        smath::vec3 x = smath::normalize( smath::cross( z, up ) );
+        smath::vec3 x = smath::cross( z, up );
         smath::vec3 y = smath::cross( x, z );
-
         z = -z;
+        
         return {
             x[0], y[0], z[0], 0.0f,
             x[1], y[1], z[1], 0.0f,
@@ -2008,7 +2008,7 @@ struct mat4 {
     }
     // rotation matrix
     static mat4 rotation( const quat& r ) {
-        return smath::mat4::rotation( r );
+        return smath::mat4::rotation( r.w, r.x, r.y, r.z );
     }
     // euler x rotation matrix
     static mat4 rotationX( f32 thetaX ) {
@@ -2089,18 +2089,17 @@ inline mat4 operator*( const mat4& lhs, const mat4& rhs ) {
     // TODO(alicia): AVX
     // NOTE(alicia): SSE
 
-    smath::mat4 tlhs   = transpose(lhs);
     smath::mat4 result = {};
 
-    __m128 _tlhs[4];
-    _tlhs[0] = _mm_load_ps( &tlhs.ptr()[0] );
-    _tlhs[1] = _mm_load_ps( &tlhs.ptr()[4] );
-    _tlhs[2] = _mm_load_ps( &tlhs.ptr()[8] );
-    _tlhs[3] = _mm_load_ps( &tlhs.ptr()[12] );
+    __m128 _lhs[4];
+    _lhs[0] = _mm_load_ps( &lhs.ptr()[0] );
+    _lhs[1] = _mm_load_ps( &lhs.ptr()[4] );
+    _lhs[2] = _mm_load_ps( &lhs.ptr()[8] );
+    _lhs[3] = _mm_load_ps( &lhs.ptr()[12] );
 
     __m128 _mul[16];
     for( usize i = 0; i < 16; ++i ) {
-        _mul[i] = _mm_mul_ps( _tlhs[ i % 4 ], _mm_set1_ps( rhs[i] ) );
+        _mul[i] = _mm_mul_ps( _lhs[ i % 4 ], _mm_set1_ps( rhs[i] ) );
     }
 
     for( usize i = 0; i < 16; i += 4 ) {
@@ -2111,7 +2110,7 @@ inline mat4 operator*( const mat4& lhs, const mat4& rhs ) {
     
     return result;
 }
-vec4 operator*( const mat4& lhs, const vec4& rhs ) {
+inline vec4 operator*( const mat4& lhs, const vec4& rhs ) {
     // TODO(alicia): AVX
     // NOTE(alicia): SSE
 
@@ -2135,7 +2134,7 @@ vec4 operator*( const mat4& lhs, const vec4& rhs ) {
     _mm_storeu_ps( result.ptr(), _mm_add_ps( _add1, _add2 ) );
     return result;
 }
-vec3 operator*( const mat4& lhs, const vec3& rhs ) {
+inline vec3 operator*( const mat4& lhs, const vec3& rhs ) {
     return lhs * vec4(rhs);
 }
 inline mat4 transpose( const mat4& m ) {
@@ -2149,16 +2148,16 @@ inline mat4 transpose( const mat4& m ) {
 inline mat3 submatrix( usize column, usize row, const mat4& m ) {
     smath::mat3 result = {};
     usize i = 0;
-    for( usize c = 0; c < column; ++c ) {
-        if( c == column ) {
-            continue;
-        }
-        for( usize r = 0; r < row; ++r ) {
-            if( r == row ) {
-                continue;
+    for( usize col = 0; col < 4; ++col ) {
+        if( col != column ) {
+            f32 columnBuffer[4];
+            m.collectColumn( col, columnBuffer );
+            for( usize r = 0; r < 4; ++r ) {
+                if( r != row ) {
+                    result[i] = columnBuffer[r];
+                    ++i;
+                }
             }
-            result[i] = m[c + r];
-            ++i;
         }
     }
     return result;
@@ -2193,9 +2192,9 @@ inline mat4 adjoint( const mat4& m ) {
 inline f32 determinant( const mat4& m ) {
     __m128 _a = _mm_set_ps( m[12], m[8], m[4], m[0] );
     __m128 _b = _mm_set_ps(
-        determinant( submatrix( 0, 3, m ) ),
-        determinant( submatrix( 0, 2, m ) ),
-        determinant( submatrix( 0, 1, m ) ),
+        determinant( submatrix( 3, 0, m ) ),
+        determinant( submatrix( 2, 0, m ) ),
+        determinant( submatrix( 1, 0, m ) ),
         determinant( submatrix( 0, 0, m ) )
     );
     f32 _mul[4];
@@ -2223,8 +2222,8 @@ bool mat3::normalMat( const mat4& transform, mat3& result ) {
 }
 
 // NOTE(alicia): conversions
-vec3::vec3( const vec4& v ) : x(v.x), y(v.y), z(v.z) {}
-mat3::mat3( const mat4& m )
+inline vec3::vec3( const vec4& v ) : x(v.x), y(v.y), z(v.z) {}
+inline mat3::mat3( const mat4& m )
 : _m00(m[0]), _m01(m[1]), _m02(m[2]),
   _m10(m[4]), _m11(m[5]), _m12(m[6]),
   _m20(m[8]), _m21(m[9]), _m22(m[10]) {}
