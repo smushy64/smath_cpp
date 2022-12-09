@@ -1,4 +1,23 @@
 ## TODO
+- [x] inline functions!
+- [x] fix bugs ( transform, normalmat )
+- [x] ivec2
+- [x] ivec3
+- [x] ivec4
+- [x] ivec operations are broken!
+  - storeu_epi32 is an AVX-512 intrinsic! i dont have AVX-512 :( also i wanna keep this to mostly SSE
+- [x] explicit scalar -> vector constructor
+- [x] min/max for int, float and ivec
+- [x] f32 -> i32 conversions
+  - [x] truncate
+  - [x] floor
+  - [x] ceil
+  - [x] round
+- [x] trunc/floor/ceil/round vec -> ivec
+- [x] bvec2
+- [x] bvec3
+- [x] bvec4
+- [ ] b32vec
 - [ ] trig functions, currently using built-in CRT functions
 - [ ] matrix 2x2
 - [ ] FMA3 sqrMag
@@ -7,11 +26,7 @@
 - [ ] SIMD(SSE?) quaternion multiplication
 - [ ] SIMD(SSE?) quaternion <-> euler
 - [ ] Test with msvc, clang etc.
-- [x] inline functions!
-- [x] fix bugs ( transform, normalmat )
-- [x] ivec2
-- [x] ivec3
-- [ ] ivec4
+- [ ] trunc/floor/ceil/round 8/16/64
 
 ## FUTURE FEATURES
 - ARM NEON?

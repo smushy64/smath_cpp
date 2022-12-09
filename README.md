@@ -12,12 +12,14 @@ Feel free to use it in your projects if it fits your needs, no attribution neede
 
 Currently uses only SSE instructions for vector arithmetic.
 
+Only tested with c++20, gcc compiler.
+
 ## How to use
 
 Download [smath.hpp](src/smath.hpp) and include it in your project.
 
 Requires
-- `cstdint` should already have it as every compiler includes this header
+- `cstdint`     should already have it as every compiler includes this header
 - `immintrin.h` should already have it as every compiler includes this header
 
 ## Example

@@ -4,11 +4,12 @@
  * File Created: November 23, 2022 
 */
 #pragma once
-#include <cstdint>
 #include <immintrin.h>
 
 #ifndef SMUSHY_TYPE_ALIAS
 #define SMUSHY_TYPE_ALIAS 1
+
+#include <cstdint>
 
 // TYPEDEF -----------------------------------------------------------------------------------------
 
@@ -160,6 +161,35 @@ namespace I64 {
 
 #endif
 
+#if _MSC_VER
+
+#include <math.h>
+
+#pragma warning( disable : 4201 )
+#pragma warning( disable : 4244 )
+#pragma warning( disable : 4458 )
+
+// TODO(alicia): TEMP
+
+#define __builtin_sinf(x) sinf(x)
+#define __builtin_sin(x) sin(x)
+#define __builtin_asinf(x) asinf(x)
+#define __builtin_asin(x) asin(x)
+#define __builtin_cosf(x) cosf(x)
+#define __builtin_cos(x) cos(x)
+#define __builtin_acosf(x) acosf(x)
+#define __builtin_acos(x) acos(x)
+#define __builtin_tanf(x) tanf(x)
+#define __builtin_tan(x) tan(x)
+#define __builtin_atan2f(x, y) atan2f(x, y)
+#define __builtin_atan2(x, y) atan2(x, y)
+#define __builtin_powf( x, y ) powf( x, y )
+#define __builtin_pow( x, y ) pow( x, y )
+#define __builtin_powif( x, y ) powi( x, y )
+#define __builtin_powi( x, y ) powi( x, y )
+
+#endif
+
 namespace smath {
 
 // NOTE(alicia): FUNCTIONS ---------------------------------------------------------------------------------------
@@ -172,6 +202,25 @@ inline constexpr f32 abs( f32 x );
 inline constexpr f64 abs( f64 x );
 inline constexpr f32 sign( f32 x );
 inline constexpr f64 sign( f64 x );
+
+// TODO(alicia): run more tests on trunc/floor/ceil/round
+
+// truncate float to i32
+inline i32 trunc32( f32 x ) {
+    return (i32)x;
+}
+// floor float to i32
+inline i32 floor32( f32 x ) {
+    return x > 0.0f ? trunc32(x) : trunc32(x - 0.999999f);
+}
+// ceil float to i32
+inline i32 ceil32( f32 x ) {
+    return x > 0.0f ? trunc32( x + 0.999999f ) : trunc32(x);
+}
+// round float to i32
+inline i32 round32( f32 x ) {
+    return x > 0.0f ? trunc32(x + 0.5f) : trunc32( x - 0.5f );
+}
 
 // sine of x
 inline f32 sin( f32 x ) {
@@ -277,18 +326,12 @@ inline i64 rand( i64 seed ) {
 /// square root
 inline f32 sqrt( f32 x ) {
     // NOTE(alicia): SSE
-
-    __m128 temp = _mm_set_ss(x);
-    temp = _mm_sqrt_ss( temp );
-    return _mm_cvtss_f32( temp );
+    return _mm_cvtss_f32( _mm_sqrt_ps( _mm_set1_ps( x ) ) );
 }
 // square root
 inline f64 sqrt( f64 x ) {
     // NOTE(alicia): SSE
-
-    __m128d temp = _mm_set_sd( x );
-    temp = _mm_sqrt_pd( temp );
-    return _mm_cvtsd_f64( temp );
+    return _mm_cvtsd_f64( _mm_sqrt_pd( _mm_set1_pd( x ) ) );
 }
 
 // raise x to the power of exp
@@ -399,6 +442,30 @@ inline constexpr f64 clamp( f64 value, f64 min, f64 max ) {
     return t > max ? max : t;
 }
 
+#define SMATH_DEFINE_MIN(t) inline t min( t a, t b) { return a < b ? a : b; }
+#define SMATH_DEFINE_MAX(t) inline t max( t a, t b) { return a < b ? b : a; }
+SMATH_DEFINE_MIN(i8);
+SMATH_DEFINE_MIN(i16);
+SMATH_DEFINE_MIN(i32);
+SMATH_DEFINE_MIN(i64);
+SMATH_DEFINE_MIN(u16);
+SMATH_DEFINE_MIN(u8);
+SMATH_DEFINE_MIN(u32);
+SMATH_DEFINE_MIN(u64);
+SMATH_DEFINE_MIN(f32);
+SMATH_DEFINE_MIN(f64);
+
+SMATH_DEFINE_MAX(i8);
+SMATH_DEFINE_MAX(i16);
+SMATH_DEFINE_MAX(i32);
+SMATH_DEFINE_MAX(i64);
+SMATH_DEFINE_MAX(u16);
+SMATH_DEFINE_MAX(u8);
+SMATH_DEFINE_MAX(u32);
+SMATH_DEFINE_MAX(u64);
+SMATH_DEFINE_MAX(f32);
+SMATH_DEFINE_MAX(f64);
+
 /// @brief Linear interpolation
 /// @param a minimum value
 /// @param b maximum value
@@ -472,35 +539,19 @@ inline f64 remap( f64 imin, f64 imax, f64 omin, f64 omax, f64 v ) {
 
 // normalize integer from -1.0-1.0
 inline constexpr f32 normalize( i8 value ) {
-    if( value > 0 ) {
-        return (f32)value / (f32)I8::MAX;
-    } else {
-        return (f32)value / -(f32)I8::MIN;
-    }
+    return (f32)value / (f32)(value > 0 ? I8::MAX : -((f32)I8::MIN));
 }
 // normalize integer from -1.0-1.0
 inline constexpr f32 normalize( i16 value ) {
-    if( value > 0 ) {
-        return (f32)value / (f32)I16::MAX;
-    } else {
-        return (f32)value / -(f32)I16::MIN;
-    }
+    return (f32)value / (f32)(value > 0 ? I16::MAX : -((f32)I16::MIN));
 }
 // normalize integer from -1.0-1.0
 inline constexpr f32 normalize( i32 value ) {
-    if( value > 0 ) {
-        return (f32)value / (f32)I32::MAX;
-    } else {
-        return (f32)value / -(f32)I32::MIN;
-    }
+    return (f32)value / (f32)(value > 0 ? I32::MAX : -((f32)I32::MIN));
 }
 // normalize integer from -1.0-1.0
 inline constexpr f32 normalize( i64 value ) {
-    if( value > 0 ) {
-        return (f32)value / (f32)I64::MAX;
-    } else {
-        return (f32)value / -(f32)I64::MIN;
-    }
+    return (f32)value / (f32)(value > 0 ? I64::MAX : -((f32)I64::MIN));
 }
 // normalize unsigned integer from 0.0-1.0
 inline constexpr f32 normalize( u8 value ) {
@@ -568,7 +619,7 @@ inline constexpr f32 abs( f32 value ) {
 inline constexpr f64 abs( f64 value ) {
     return value * sign(value);
 }
-/// @brief multiply 4 floats by 4 floats
+/// @brief multiply 4 f32 by 4 f32
 /// @param x1,y1,z1,w1 a
 /// @param x2,y2,z2,w2 b
 /// @param out f32[4] a * b
@@ -582,7 +633,7 @@ inline void mul(
     __m128 b = _mm_set_ps( w2, z2, y2, x2 );
     _mm_storeu_ps( out, _mm_mul_ps( a, b ) );
 }
-/// @brief multiply 4 floats by scalar
+/// @brief multiply 4 f32 by scalar
 /// @param x,y,z,w a
 /// @param scalar b
 /// @param out f32[4] a * b
@@ -593,8 +644,34 @@ inline void mul(
 ) {
     // NOTE(alicia): SSE
     __m128 a = _mm_set_ps( w, z, y, x );
-    __m128 b = _mm_set1_ps( scalar );
-    _mm_storeu_ps( out, _mm_mul_ps( a, b ) );
+    _mm_storeu_ps( out, _mm_mul_ps( a, _mm_set1_ps( scalar ) ) );
+}
+/// @brief multiply 2 f64 by 2 f64
+/// @param x1,y1 a
+/// @param x2,y2 b
+/// @param out f64[2] a * b
+inline void mul(
+    f64 x1, f64 y1,
+    f64 x2, f64 y2,
+    f64* out
+) {
+    // NOTE(alicia): SSE
+    __m128d a = _mm_set_pd( y1, x1 );
+    __m128d b = _mm_set_pd( y2, x2 );
+    _mm_storeu_pd( out, _mm_mul_pd( a, b ) );
+}
+/// @brief multiply 2 f64 by scalar
+/// @param x,y a
+/// @param scalar b
+/// @param out f64[2] a * b
+inline void mul(
+    f64 x, f64 y,
+    f64 scalar,
+    f64* out
+) {
+    // NOTE(alicia): SSE
+    __m128d a = _mm_set_pd( y, x );
+    _mm_storeu_pd( out, _mm_mul_pd( a, _mm_set1_pd( scalar ) ) );
 }
 
 // NOTE(alicia): TYPES -------------------------------------------------------------------------------------------
@@ -603,15 +680,19 @@ const f32 VEC_CMP_THRESHOLD = 0.0001f;
 
 struct vec2;
 struct ivec2;
+struct bvec2;
 struct vec3;
 struct ivec3;
+struct bvec3;
 struct vec4;
 struct ivec4;
+struct bvec4;
 struct quat;
+struct angleaxis;
 struct mat2;
 struct mat3;
 struct mat4;
-// TODO(alicia): MAT2, IVEC3, IVEC4
+// TODO(alicia): MAT2
 
 inline vec2 operator+( const vec2& lhs, const vec2& rhs );
 inline vec2 operator-( const vec2& lhs, const vec2& rhs );
@@ -656,9 +737,12 @@ struct vec2 {
     };
 
     vec2() : x(0.0f), y(0.0f) {}
-    vec2( f32 scalar ) : x(scalar), y(scalar) {}
     vec2( f32 x, f32 y ) : x(x), y(y) {}
+    explicit vec2( f32 scalar ) : x(scalar), y(scalar) {}
     explicit vec2( const ivec2& iv );
+    explicit vec2( const bvec2& b );
+    explicit vec2( const vec3& v );
+    explicit vec2( const vec4& v );
 
     // get pointer to struct as f32
     f32* ptr() { return &x; }
@@ -830,6 +914,10 @@ inline bool cmp( const ivec2& lhs, const ivec2& rhs );
 inline f32 dot( const ivec2& lhs, const ivec2& rhs );
 // scale vectors component-wise
 inline ivec2 mul( const ivec2& lhs, const ivec2& rhs );
+// return ivec2 made up of smallest values of lhs and rhs 
+inline ivec2 min( const ivec2& lhs, const ivec2& rhs );
+// return ivec2 made up of largest values of lhs and rhs 
+inline ivec2 max( const ivec2& lhs, const ivec2& rhs );
 // square magnitude
 inline f32 sqrMag( const ivec2& v );
 // magnitude
@@ -843,9 +931,10 @@ struct ivec2 {
     i32 x, y;
 
     ivec2() : x(0), y(0) {}
-    ivec2( i32 scalar ) : x(scalar), y(scalar) {}
     ivec2( i32 x, i32 y ) : x(x), y(y) {}
+    explicit ivec2( i32 scalar ) : x(scalar), y(scalar) {}
     explicit ivec2( const vec2& v ) : x((i32)v.x), y((i32)v.y) {}
+    explicit ivec2( const bvec2& b );
 
     // get pointer to struct as i32
     i32* ptr() { return &x; }
@@ -865,12 +954,10 @@ struct ivec2 {
 
         __m128i _a = _mm_set_epi32( 0, 0, this->y, this->x );
         __m128i _b = _mm_set_epi32( 0, 0, rhs.y, rhs.x );
+        __m128i _res = _mm_add_epi32( _a, _b );
 
-        i32 result[4];
-        _mm_storeu_epi32( result, _mm_add_epi32( _a, _b ) );
-
-        this->x = result[0];
-        this->y = result[1];
+        this->x = _mm_extract_epi32( _res, 0 );
+        this->y = _mm_extract_epi32( _res, 1 );
         return *this;
     }
     ivec2& operator-=( const ivec2& rhs ) {
@@ -878,30 +965,26 @@ struct ivec2 {
 
         __m128i _a = _mm_set_epi32( 0, 0, this->y, this->x );
         __m128i _b = _mm_set_epi32( 0, 0, rhs.y, rhs.x );
+        __m128i _res = _mm_sub_epi32( _a, _b );
 
-        i32 result[4];
-        _mm_storeu_epi32( result, _mm_sub_epi32( _a, _b ) );
-
-        this->x = result[0];
-        this->y = result[1];
+        this->x = _mm_extract_epi32( _res, 0 );
+        this->y = _mm_extract_epi32( _res, 1 );
         return *this;
     }
     ivec2& operator*=( const i32& rhs ) {
         // NOTE(alicia): SSE
 
-        __m128i _a = _mm_set_epi32( 0, 0, this->y, this->x );
-        __m128i _b = _mm_set1_epi32( rhs );
+        __m128 _a = _mm_set_ps( 0.0f, 0.0f, (f32)this->y, (f32)this->x );
+        __m128 _b = _mm_set1_ps( (f32)rhs );
+        f32 result[4];
+        _mm_storeu_ps( result, _mm_mul_ps( _a, _b ) );
 
-        i32 result[4];
-        _mm_storeu_epi32( result, _mm_mul_epi32( _a, _b ) );
-
-        this->x = result[0];
-        this->y = result[1];
+        this->x = (i32)result[0];
+        this->y = (i32)result[1];
         return *this;
     }
     ivec2& operator/=( const i32& rhs ) {
         // NOTE(alicia): SSE
-        // NOTE(alicia): Floating-point divide because there is no _mm_div_epi32 :(
 
         __m128 _a = _mm_set_ps( 0.0f, 0.0f, (f32)this->y, (f32)this->x );
         __m128 _b = _mm_set1_ps( (f32)rhs );
@@ -964,15 +1047,106 @@ inline ivec2 mul( const ivec2& lhs, const ivec2& rhs ) {
     // NOTE(alicia): SSE
     ivec2 result = {};
 
-    __m128i _a = _mm_set_epi32( 0, 0, lhs.y, lhs.x );
-    __m128i _b = _mm_set_epi32( 0, 0, rhs.y, rhs.x );
+    __m128 _a = _mm_set_ps( 0.0f, 0.0f, (f32)lhs.y, (f32)lhs.x );
+    __m128 _b = _mm_set_ps( 0.0f, 0.0f, (f32)rhs.y, (f32)rhs.x );
+    f32 res[4];
+    _mm_storeu_ps( res, _mm_mul_ps( _a, _b ) );
 
-    i32 _mul[4];
-    _mm_storeu_epi32( _mul, _mm_mul_epi32( _a, _b ) );
-
-    result.x = result[0];
-    result.y = result[1];
+    result.x = (i32)res[0];
+    result.y = (i32)res[1];
     return result;
+}
+inline ivec2 min( const ivec2& lhs, const ivec2& rhs ) {
+    return { min( lhs.x, rhs.x ), min( lhs.y, rhs.y ) };
+}
+inline ivec2 max( const ivec2& lhs, const ivec2& rhs ) {
+    return { max( lhs.x, rhs.x ), max( lhs.y, rhs.y ) };
+}
+
+// 2-component boolean vector
+struct bvec2 {
+    bool x, y;
+
+    bvec2() : x(false), y(false) {}
+    bvec2( bool x, bool y ) : x(x), y(y) {}
+    explicit bvec2( bool boolean ) : x(boolean), y(boolean) {}
+    explicit bvec2( const ivec2& v ) : x((bool)v.x), y((bool)v.y) {}
+    explicit bvec2( const vec2& v ) : x((bool)v.x), y((bool)v.y) {}
+    explicit bvec2( const bvec3& v );
+    explicit bvec2( const bvec4& v );
+
+    // get pointer to struct as bool
+    bool* ptr() { return &x; }
+    // get pointer to struct as bool
+    const bool* ptr() const { return &x; }
+    bvec2& operator!() {
+        *this = { !this->x, !this->y }; 
+        return *this;
+    }
+    bool& operator[]( usize index ) {
+        return ptr()[index];
+    }
+    bool operator[]( usize index ) const {
+        return ptr()[index];
+    }
+};
+// component-wise compare equality
+inline bvec2 cmp_eq( const ivec2& lhs, const ivec2& rhs ) {
+    return { lhs.x == rhs.x, lhs.y == rhs.y };
+}
+// component-wise compare not equality
+inline bvec2 cmp_neq( const ivec2& lhs, const ivec2& rhs ) {
+    return { lhs.x != rhs.x, lhs.y != rhs.y };
+}
+// component-wise compare greater than
+inline bvec2 cmp_gt( const ivec2& lhs, const ivec2& rhs ) {
+    return { lhs.x > rhs.x, lhs.y > rhs.y };
+}
+// component-wise compare greater than equals
+inline bvec2 cmp_gteq( const ivec2& lhs, const ivec2& rhs ) {
+    return { lhs.x >= rhs.x, lhs.y >= rhs.y };
+}
+// component-wise compare less than
+inline bvec2 cmp_lt( const ivec2& lhs, const ivec2& rhs ) {
+    return { lhs.x < rhs.x, lhs.y < rhs.y };
+}
+// component-wise compare less than equals
+inline bvec2 cmp_lteq( const ivec2& lhs, const ivec2& rhs ) {
+    return { lhs.x <= rhs.x, lhs.y <= rhs.y };
+}
+
+// component-wise compare equality
+inline bvec2 cmp_eq( const vec2& lhs, const vec2& rhs ) {
+    return { lhs.x == rhs.x, lhs.y == rhs.y };
+}
+// component-wise compare not equality
+inline bvec2 cmp_neq( const vec2& lhs, const vec2& rhs ) {
+    return { lhs.x != rhs.x, lhs.y != rhs.y };
+}
+// component-wise compare greater than
+inline bvec2 cmp_gt( const vec2& lhs, const vec2& rhs ) {
+    return { lhs.x > rhs.x, lhs.y > rhs.y };
+}
+// component-wise compare greater than equals
+inline bvec2 cmp_gteq( const vec2& lhs, const vec2& rhs ) {
+    return { lhs.x >= rhs.x, lhs.y >= rhs.y };
+}
+// component-wise compare less than
+inline bvec2 cmp_lt( const vec2& lhs, const vec2& rhs ) {
+    return { lhs.x < rhs.x, lhs.y < rhs.y };
+}
+// component-wise compare less than equals
+inline bvec2 cmp_lteq( const vec2& lhs, const vec2& rhs ) {
+    return { lhs.x <= rhs.x, lhs.y <= rhs.y };
+}
+
+// and together all components
+inline bool collapse_and( const bvec2& v ) {
+    return v.x && v.y;
+}
+// or together all components
+inline bool collapse_or( const bvec2& v ) {
+    return v.x || v.y;
 }
 
 inline vec3 operator+( const vec3& lhs, const vec3& rhs );
@@ -1018,15 +1192,17 @@ inline vec3 clampedLerp( const vec3& a, const vec3& b, f32 t );
 struct vec3 {
     union {
         struct { f32 x, y, z; };
+        struct { f32 pitch, yaw, roll; };
         struct { f32 r, g, b; };
     };
 
     vec3() : x(0.0f), y(0.0f), z(0.0f) {}
-    vec3( f32 scalar ) : x(scalar), y(scalar), z(scalar) {}
     vec3( f32 x, f32 y, f32 z ) : x(x), y(y), z(z) {}
+    explicit vec3( f32 scalar ) : x(scalar), y(scalar), z(scalar) {}
     explicit vec3( const vec2& v ) : x(v.x), y(v.y), z(0.0f) {}
     explicit vec3( const vec4& v );
     explicit vec3( const ivec3& iv );
+    explicit vec3( const bvec3& b );
 
     // get pointer to struct as f32
     f32* ptr() { return &x; }
@@ -1219,6 +1395,10 @@ inline f32 dot( const ivec3& lhs, const ivec3& rhs );
 inline ivec3 cross( const ivec3& lhs, const ivec3& rhs );
 // scale vectors component-wise
 inline ivec3 mul( const ivec3& lhs, const ivec3& rhs );
+// return ivec3 made up of smallest values of lhs and rhs 
+inline ivec3 min( const ivec3& lhs, const ivec3& rhs );
+// return ivec3 made up of largest values of lhs and rhs 
+inline ivec3 max( const ivec3& lhs, const ivec3& rhs );
 // square magnitude
 inline f32 sqrMag( const ivec3& v );
 // magnitude
@@ -1232,9 +1412,12 @@ struct ivec3 {
     i32 x, y, z;
 
     ivec3() : x(0), y(0), z(0) {}
-    ivec3( i32 scalar ) : x(scalar), y(scalar), z(scalar) {}
     ivec3( i32 x, i32 y, i32 z ) : x(x), y(y), z(z) {}
+    explicit ivec3( i32 scalar ) : x(scalar), y(scalar), z(scalar) {}
     explicit ivec3( const vec3& v ) : x((i32)v.x), y((i32)v.y), z((i32)v.z) {}
+    explicit ivec3( const ivec2& v ) : x(v.x), y(v.y), z(0) {}
+    explicit ivec3( const ivec4& v );
+    explicit ivec3( const bvec3& b );
 
     // get pointer to struct as i32
     i32* ptr() { return &x; }
@@ -1254,13 +1437,11 @@ struct ivec3 {
 
         __m128i _a = _mm_set_epi32( 0, this->z, this->y, this->x );
         __m128i _b = _mm_set_epi32( 0, rhs.z, rhs.y, rhs.x );
+        __m128i _res = _mm_add_epi32( _a, _b );
 
-        i32 result[4];
-        _mm_storeu_epi32( result, _mm_add_epi32( _a, _b ) );
-
-        this->x = result[0];
-        this->y = result[1];
-        this->z = result[2];
+        this->x = _mm_extract_epi32( _res, 0 );
+        this->y = _mm_extract_epi32( _res, 1 );
+        this->z = _mm_extract_epi32( _res, 2 );
         return *this;
     }
     ivec3& operator-=( const ivec3& rhs ) {
@@ -1268,32 +1449,28 @@ struct ivec3 {
 
         __m128i _a = _mm_set_epi32( 0, this->z, this->y, this->x );
         __m128i _b = _mm_set_epi32( 0, rhs.z, rhs.y, rhs.x );
+        __m128i _res = _mm_sub_epi32( _a, _b );
 
-        i32 result[4];
-        _mm_storeu_epi32( result, _mm_sub_epi32( _a, _b ) );
-
-        this->x = result[0];
-        this->y = result[1];
-        this->z = result[2];
+        this->x = _mm_extract_epi32( _res, 0 );
+        this->y = _mm_extract_epi32( _res, 1 );
+        this->z = _mm_extract_epi32( _res, 2 );
         return *this;
     }
     ivec3& operator*=( const i32& rhs ) {
         // NOTE(alicia): SSE
 
-        __m128i _a = _mm_set_epi32( 0, this->z, this->y, this->x );
-        __m128i _b = _mm_set1_epi32( rhs );
+        __m128 _a = _mm_set_ps( 0.0f, (f32)this->z, (f32)this->y, (f32)this->x );
+        __m128 _b = _mm_set1_ps( (f32)rhs );
+        f32 result[4];
+        _mm_storeu_ps( result, _mm_mul_ps( _a, _b ) );
 
-        i32 result[4];
-        _mm_storeu_epi32( result, _mm_mul_epi32( _a, _b ) );
-
-        this->x = result[0];
-        this->y = result[1];
-        this->z = result[2];
+        this->x = (i32)result[0];
+        this->y = (i32)result[1];
+        this->z = (i32)result[2];
         return *this;
     }
     ivec3& operator/=( const i32& rhs ) {
         // NOTE(alicia): SSE
-        // NOTE(alicia): Floating-point divide because there is no _mm_div_epi32 :(
 
         __m128 _a = _mm_set_ps( 0.0f, (f32)this->z, (f32)this->y, (f32)this->x );
         __m128 _b = _mm_set1_ps( (f32)rhs );
@@ -1365,17 +1542,109 @@ inline ivec3 mul( const ivec3& lhs, const ivec3& rhs ) {
     // NOTE(alicia): SSE
     ivec3 result = {};
 
-    __m128i _a = _mm_set_epi32( 0, lhs.z, lhs.y, lhs.x );
-    __m128i _b = _mm_set_epi32( 0, rhs.z, rhs.y, rhs.x );
+    __m128 _a = _mm_set_ps( 0.0f, (f32)lhs.z, (f32)lhs.y, (f32)lhs.x );
+    __m128 _b = _mm_set_ps( 0.0f, (f32)rhs.z, (f32)rhs.y, (f32)rhs.x );
+    f32 res[4];
+    _mm_storeu_ps( res, _mm_mul_ps( _a, _b ) );
 
-    i32 _mul[4];
-    _mm_storeu_epi32( _mul, _mm_mul_epi32( _a, _b ) );
-
-    result.x = result[0];
-    result.y = result[1];
-    result.z = result[2];
+    result.x = (i32)res[0];
+    result.y = (i32)res[1];
+    result.z = (i32)res[2];
     return result;
 }
+inline ivec3 min( const ivec3& lhs, const ivec3& rhs ) {
+    return { min( lhs.x, rhs.x ), min( lhs.y, rhs.y ), min( lhs.z, rhs.z ) };
+}
+inline ivec3 max( const ivec3& lhs, const ivec3& rhs ) {
+    return { max( lhs.x, rhs.x ), max( lhs.y, rhs.y ), max( lhs.z, rhs.z ) };
+}
+
+// 3-component boolean vector
+struct bvec3 {
+    bool x, y, z;
+
+    bvec3() : x(false), y(false), z(false) {}
+    bvec3( bool x, bool y, bool z ) : x(x), y(y), z(z) {}
+    explicit bvec3( bool boolean ) : x(boolean), y(boolean), z(boolean) {}
+    explicit bvec3( const ivec3& v ) : x((bool)v.x), y((bool)v.y), z((bool)v.z) {}
+    explicit bvec3( const vec3& v ) : x((bool)v.x), y((bool)v.y), z((bool)v.z) {}
+    explicit bvec3( const bvec2& v ) : x(v.x), y(v.y) {}
+    explicit bvec3( const bvec4& b );
+
+    // get pointer to struct as bool
+    bool* ptr() { return &x; }
+    // get pointer to struct as bool
+    const bool* ptr() const { return &x; }
+    bvec3& operator!() {
+        *this = { !this->x, !this->y, !this->z }; 
+        return *this;
+    }
+    bool& operator[]( usize index ) {
+        return ptr()[index];
+    }
+    bool operator[]( usize index ) const {
+        return ptr()[index];
+    }
+};
+// component-wise compare equality
+inline bvec3 cmp_eq( const ivec3& lhs, const ivec3& rhs ) {
+    return { lhs.x == rhs.x, lhs.y == rhs.y, lhs.z == rhs.z };
+}
+// component-wise compare not equality
+inline bvec3 cmp_neq( const ivec3& lhs, const ivec3& rhs ) {
+    return { lhs.x != rhs.x, lhs.y != rhs.y, lhs.z != rhs.z };
+}
+// component-wise compare greater than
+inline bvec3 cmp_gt( const ivec3& lhs, const ivec3& rhs ) {
+    return { lhs.x > rhs.x, lhs.y > rhs.y, lhs.z > rhs.z };
+}
+// component-wise compare greater than equals
+inline bvec3 cmp_gteq( const ivec3& lhs, const ivec3& rhs ) {
+    return { lhs.x >= rhs.x, lhs.y >= rhs.y, lhs.z >= rhs.z };
+}
+// component-wise compare less than
+inline bvec3 cmp_lt( const ivec3& lhs, const ivec3& rhs ) {
+    return { lhs.x < rhs.x, lhs.y < rhs.y, lhs.z < rhs.z };
+}
+// component-wise compare less than equals
+inline bvec3 cmp_lteq( const ivec3& lhs, const ivec3& rhs ) {
+    return { lhs.x <= rhs.x, lhs.y <= rhs.y, lhs.z <= rhs.z };
+}
+
+// component-wise compare equality
+inline bvec3 cmp_eq( const vec3& lhs, const vec3& rhs ) {
+    return { lhs.x == rhs.x, lhs.y == rhs.y, lhs.z == rhs.z };
+}
+// component-wise compare not equality
+inline bvec3 cmp_neq( const vec3& lhs, const vec3& rhs ) {
+    return { lhs.x != rhs.x, lhs.y != rhs.y, lhs.z != rhs.z };
+}
+// component-wise compare greater than
+inline bvec3 cmp_gt( const vec3& lhs, const vec3& rhs ) {
+    return { lhs.x > rhs.x, lhs.y > rhs.y, lhs.z > rhs.z };
+}
+// component-wise compare greater than equals
+inline bvec3 cmp_gteq( const vec3& lhs, const vec3& rhs ) {
+    return { lhs.x >= rhs.x, lhs.y >= rhs.y, lhs.z >= rhs.z };
+}
+// component-wise compare less than
+inline bvec3 cmp_lt( const vec3& lhs, const vec3& rhs ) {
+    return { lhs.x < rhs.x, lhs.y < rhs.y, lhs.z < rhs.z };
+}
+// component-wise compare less than equals
+inline bvec3 cmp_lteq( const vec3& lhs, const vec3& rhs ) {
+    return { lhs.x <= rhs.x, lhs.y <= rhs.y, lhs.z <= rhs.z };
+}
+
+// and together all components
+inline bool collapse_and( const bvec3& v ) {
+    return v.x && v.y && v.z;
+}
+// or together all components
+inline bool collapse_or( const bvec3& v ) {
+    return v.x || v.y || v.z;
+}
+
 
 inline vec4 operator+( const vec4& lhs, const vec4& rhs );
 inline vec4 operator-( const vec4& lhs, const vec4& rhs );
@@ -1416,11 +1685,12 @@ struct vec4 {
     };
 
     vec4() : x(0.0f), y(0.0f), z(0.0f), w(0.0f) {}
-    vec4( f32 scalar ) : x(scalar), y(scalar), z(scalar), w(scalar) {}
     vec4( f32 x, f32 y, f32 z, f32 w ) : x(x), y(y), z(z), w(w) {}
+    explicit vec4( f32 scalar ) : x(scalar), y(scalar), z(scalar), w(scalar) {}
     explicit vec4( const vec2& v ) : x(v.x), y(v.y), z(0.0f), w(0.0f) {}
     explicit vec4( const vec3& v ) : x(v.x), y(v.y), z(v.z), w(1.0f) {}
     explicit vec4( const ivec4& iv );
+    explicit vec4( const bvec4& b );
 
     // get pointer to struct as f32
     f32* ptr() { return &x; }
@@ -1564,6 +1834,10 @@ inline bool cmp( const ivec4& lhs, const ivec4& rhs );
 inline f32 dot( const ivec4& lhs, const ivec4& rhs );
 // scale vectors component-wise
 inline ivec4 mul( const ivec4& lhs, const ivec4& rhs );
+// return ivec4 made up of smallest values from lhs and rhs
+inline ivec4 min( const ivec4& lhs, const ivec4& rhs );
+// return ivec4 made up of largest values from lhs and rhs
+inline ivec4 max( const ivec4& lhs, const ivec4& rhs );
 // square magnitude
 inline f32 sqrMag( const ivec4& v );
 // magnitude
@@ -1573,10 +1847,11 @@ struct ivec4 {
     i32 x, y, z, w;
 
     ivec4() : x(0), y(0), z(0), w(0) {}
-    ivec4( i32 scalar ) : x(scalar), y(scalar), z(scalar), w(scalar) {}
     ivec4( i32 x, i32 y, i32 z, i32 w ) : x(x), y(y), z(z), w(w) {}
+    explicit ivec4( i32 scalar ) : x(scalar), y(scalar), z(scalar), w(scalar) {}
     explicit ivec4( const ivec2& v ) : x(v.x), y(v.y), z(0), w(0) {}
     explicit ivec4( const ivec3& v ) : x(v.x), y(v.y), z(v.z), w(1) {}
+    explicit ivec4( const bvec4& b );
 
     // get pointer to struct as i32
     i32* ptr() { return &x; }
@@ -1597,8 +1872,12 @@ struct ivec4 {
 
         __m128i _a = _mm_set_epi32( this->w, this->z, this->y, this->x );
         __m128i _b = _mm_set_epi32( rhs.w, rhs.z, rhs.y, rhs.x );
+        __m128i _res = _mm_add_epi32( _a, _b );
 
-        _mm_storeu_epi32( &this->ptr()[0], _mm_add_epi32( _a, _b ) );
+        this->x = _mm_extract_epi32( _res, 0 );
+        this->y = _mm_extract_epi32( _res, 1 );
+        this->z = _mm_extract_epi32( _res, 2 );
+        this->w = _mm_extract_epi32( _res, 3 );
         return *this;
     }
     ivec4& operator-=( const ivec4& rhs ) {
@@ -1606,22 +1885,30 @@ struct ivec4 {
 
         __m128i _a = _mm_set_epi32( this->w, this->z, this->y, this->x );
         __m128i _b = _mm_set_epi32( rhs.w, rhs.z, rhs.y, rhs.x );
+        __m128i _res = _mm_sub_epi32( _a, _b );
 
-        _mm_storeu_epi32( &this->ptr()[0], _mm_sub_epi32( _a, _b ) );
+        this->x = _mm_extract_epi32( _res, 0 );
+        this->y = _mm_extract_epi32( _res, 1 );
+        this->z = _mm_extract_epi32( _res, 2 );
+        this->w = _mm_extract_epi32( _res, 3 );
         return *this;
     }
     ivec4& operator*=( const i32& rhs ) {
         // NOTE(alicia): SSE
 
-        __m128i _a = _mm_set_epi32( this->w, this->z, this->y, this->x );
-        __m128i _b = _mm_set1_epi32( rhs );
+        __m128 a = _mm_set_ps( (f32)this->w, (f32)this->z, (f32)this->y, (f32)this->x );
+        __m128 b = _mm_set1_ps( (f32)rhs );
+        f32 res[4];
+        _mm_storeu_ps( res, _mm_mul_ps( a, b ) );
 
-        _mm_storeu_epi32( &this->ptr()[0], _mm_mul_epi32( _a, _b ) );
+        this->x = (i32)res[0];
+        this->y = (i32)res[1];
+        this->z = (i32)res[2];
+        this->w = (i32)res[3];
         return *this;
     }
     ivec4& operator/=( const i32& rhs ) {
         // NOTE(alicia): SSE
-        // NOTE(alicia): Floating-point divide because there is no _mm_div_epi32 :(
 
         __m128 _a = _mm_set_ps( (f32)this->w, (f32)this->z, (f32)this->y, (f32)this->x );
         __m128 _b = _mm_set1_ps( (f32)rhs );
@@ -1655,26 +1942,12 @@ inline ivec4 operator*( i32 lhs, const ivec4& rhs ) {
 inline ivec4 operator/( const ivec4& lhs, i32 rhs ) {
     return ivec4(lhs) /= rhs;
 }
-inline ivec4 normalize( const ivec4& v ) {
-    f32 m = mag( v );
-    if( m != 0.0f ) {
-        return v / m;
-    } else {
-        return ivec4::zero();
-    }
-}
 inline bool cmp( const ivec4& lhs, const ivec4& rhs ) {
-    return sqrMag(lhs - rhs) < VEC_CMP_THRESHOLD;
-}
-inline ivec4 clamp( const ivec4& v, f32 max ) {
-    f32 magnitude = mag(v);
-    if( magnitude > max ) {
-        ivec4 result = v / magnitude;
-        result *= max;
-        return result;
-    } else {
-        return v;
-    }
+    return
+        lhs[0] == rhs[0] &&
+        lhs[1] == rhs[1] &&
+        lhs[2] == rhs[2] &&
+        lhs[3] == rhs[3];
 }
 inline f32 dot( const ivec4& lhs, const ivec4& rhs ) {
     return smath::dot( smath::vec4(lhs), smath::vec4(rhs) );
@@ -1682,12 +1955,19 @@ inline f32 dot( const ivec4& lhs, const ivec4& rhs ) {
 inline ivec4 mul( const ivec4& lhs, const ivec4& rhs ) {
     // NOTE(alicia): SSE
 
-    __m128i a = _mm_set_epi32( lhs.w, lhs.z, lhs.y, lhs.x );
-    __m128i b = _mm_set_epi32( rhs.w, rhs.z, rhs.y, rhs.x );
     ivec4 result = {};
-    _mm_storeu_epi32( &result.ptr()[0], _mm_mul_epi32( a, b ) );
 
+    __m128 a = _mm_set_ps( (f32)lhs.w, (f32)lhs.z, (f32)lhs.y, (f32)lhs.x );
+    __m128 b = _mm_set_ps( (f32)rhs.w, (f32)rhs.z, (f32)rhs.y, (f32)rhs.x );
+    f32 res[4];
+    _mm_storeu_ps( res, _mm_mul_ps( a, b ) );
+
+    result.x = (i32)res[0];
+    result.y = (i32)res[1];
+    result.z = (i32)res[2];
+    result.w = (i32)res[3];
     return result;
+
 }
 inline f32 sqrMag( const ivec4& v ) {
     return smath::sqrMag( smath::vec4(v) );
@@ -1695,7 +1975,110 @@ inline f32 sqrMag( const ivec4& v ) {
 inline f32 mag( const ivec4& v ) {
     return smath::mag( smath::vec4(v) );
 }
+inline ivec4 min( const ivec4& lhs, const ivec4& rhs ) {
+    return { min( lhs.x, rhs.x ), min( lhs.y, rhs.y ), min( lhs.z, rhs.z ), min( lhs.w, rhs.w ) };
+}
+inline ivec4 max( const ivec4& lhs, const ivec4& rhs ) {
+    return { max( lhs.x, rhs.x ), max( lhs.y, rhs.y ), max( lhs.z, rhs.z ), max( lhs.w, rhs.w ) };
+}
 
+// 4-component boolean vector
+struct bvec4 {
+    bool x, y, z, w;
+
+    bvec4() : x(false), y(false), z(false), w(false) {}
+    bvec4( bool x, bool y, bool z, bool w ) : x(x), y(y), z(z), w(w) {}
+    explicit bvec4( const bvec2& v ) : x(v.x), y(v.y), z(false), w(false) {}
+    explicit bvec4( const bvec3& v ) : x(v.x), y(v.y), z(v.z), w(false) {}
+    explicit bvec4( bool boolean ) : x(boolean), y(boolean), z(boolean), w(boolean) {}
+    explicit bvec4( const ivec4& v ) : x((bool)v.x), y((bool)v.y), z((bool)v.z), w((bool)v.w) {}
+    explicit bvec4( const vec4& v ) : x((bool)v.x), y((bool)v.y), z((bool)v.z), w((bool)v.w) {}
+
+    // get pointer to struct as bool
+    bool* ptr() { return &x; }
+    // get pointer to struct as bool
+    const bool* ptr() const { return &x; }
+    bvec4& operator!() {
+        *this = { !this->x, !this->y, !this->z, !this->w }; 
+        return *this;
+    }
+    bool& operator[]( usize index ) {
+        return ptr()[index];
+    }
+    bool operator[]( usize index ) const {
+        return ptr()[index];
+    }
+};
+// component-wise compare equality
+inline bvec4 cmp_eq( const ivec4& lhs, const ivec4& rhs ) {
+    return { lhs.x == rhs.x, lhs.y == rhs.y, lhs.z == rhs.z, lhs.w == rhs.w };
+}
+// component-wise compare not equality
+inline bvec4 cmp_neq( const ivec4& lhs, const ivec4& rhs ) {
+    return { lhs.x != rhs.x, lhs.y != rhs.y, lhs.z != rhs.z, lhs.w != rhs.w };
+}
+// component-wise compare greater than
+inline bvec4 cmp_gt( const ivec4& lhs, const ivec4& rhs ) {
+    return { lhs.x > rhs.x, lhs.y > rhs.y, lhs.z > rhs.z, lhs.w  > rhs.w };
+}
+// component-wise compare greater than equals
+inline bvec4 cmp_gteq( const ivec4& lhs, const ivec4& rhs ) {
+    return { lhs.x >= rhs.x, lhs.y >= rhs.y, lhs.z >= rhs.z, lhs.w >= rhs.w };
+}
+// component-wise compare less than
+inline bvec4 cmp_lt( const ivec4& lhs, const ivec4& rhs ) {
+    return { lhs.x < rhs.x, lhs.y < rhs.y, lhs.z < rhs.z, lhs.w  < rhs.w };
+}
+// component-wise compare less than equals
+inline bvec4 cmp_lteq( const ivec4& lhs, const ivec4& rhs ) {
+    return { lhs.x <= rhs.x, lhs.y <= rhs.y, lhs.z <= rhs.z, lhs.w <= rhs.w };
+}
+
+// component-wise compare equality
+inline bvec4 cmp_eq( const vec4& lhs, const vec4& rhs ) {
+    return { lhs.x == rhs.x, lhs.y == rhs.y, lhs.z == rhs.z, lhs.w == rhs.w };
+}
+// component-wise compare not equality
+inline bvec4 cmp_neq( const vec4& lhs, const vec4& rhs ) {
+    return { lhs.x != rhs.x, lhs.y != rhs.y, lhs.z != rhs.z, lhs.w != rhs.w };
+}
+// component-wise compare greater than
+inline bvec4 cmp_gt( const vec4& lhs, const vec4& rhs ) {
+    return { lhs.x > rhs.x, lhs.y > rhs.y, lhs.z > rhs.z, lhs.w  > rhs.w };
+}
+// component-wise compare greater than equals
+inline bvec4 cmp_gteq( const vec4& lhs, const vec4& rhs ) {
+    return { lhs.x >= rhs.x, lhs.y >= rhs.y, lhs.z >= rhs.z, lhs.w >= rhs.w };
+}
+// component-wise compare less than
+inline bvec4 cmp_lt( const vec4& lhs, const vec4& rhs ) {
+    return { lhs.x < rhs.x, lhs.y < rhs.y, lhs.z < rhs.z, lhs.w  < rhs.w };
+}
+// component-wise compare less than equals
+inline bvec4 cmp_lteq( const vec4& lhs, const vec4& rhs ) {
+    return { lhs.x <= rhs.x, lhs.y <= rhs.y, lhs.z <= rhs.z, lhs.w <= rhs.w };
+}
+
+// and together all components
+inline bool collapse_and( const bvec4& v ) {
+    return v.x && v.y && v.z && v.w;
+}
+// or together all components
+inline bool collapse_or( const bvec4& v ) {
+    return v.x || v.y || v.z || v.w;
+}
+
+
+// container for angle axis, not used for much else.
+// theta is angle in radians.
+// axis is a normalized vector.
+struct angleaxis {
+    f32 theta;
+    union {
+        vec3 axis;
+        f32 x, y, z;
+    };
+};
 inline quat operator+( const quat& lhs, const quat& rhs );
 inline quat operator-( const quat& lhs, const quat& rhs );
 inline quat operator*( const quat& lhs, const quat& rhs );
@@ -1707,6 +2090,10 @@ inline quat operator/( const quat& lhs, f32 rhs );
 inline quat normalize( const quat& q );
 // compare two quaternions
 inline bool cmp( const quat& lhs, const quat& rhs );
+// signed angle between two quaternions
+inline f32 angle( const quat& lhs, const quat& rhs );
+// unsigned angle between two quaternions
+inline f32 unsignedAngle( const quat& lhs, const quat& rhs );
 // dot product
 inline f32 dot( const quat& lhs, const quat& rhs );
 // square magnitude
@@ -1800,27 +2187,22 @@ struct quat {
     }
 
     /// @brief convert to angle-axis
-    /// @param angle [out] angle
-    /// @param axis [out] axis
-    void toAngleAxis( f32& angle, vec3& axis ) {
-        angle = 2.0f * acos(w);
+    angleaxis toAngleAxis() {
+        angleaxis result = {};
+        result.theta = 2.0f * acos(w);
         f32 invW2sqrt = sqrt(1.0f - (w * w));
 
         // NOTE(alicia): SSE
         __m128 a = _mm_set_ps( 1.0f, z, y, x );
         __m128 b = _mm_set1_ps( invW2sqrt );
-        f32 result[3];
-        _mm_storeu_ps( result, _mm_div_ps( a, b ) );
+        f32 axis[4];
+        _mm_storeu_ps( axis, _mm_div_ps( a, b ) );
 
-        axis = {
-            result[0],
-            result[1],
-            result[2]
-        };
+        result.axis = { axis[0], axis[1], axis[2] };
+        return result;
     }
     /// @brief convert to euler angles
-    /// @param euler [out] euler angles
-    void toEuler( vec3& euler ) {
+    vec3 toEuler() {
         // NOTE(alicia): SSE
         // TODO(alicia): further optimization!
         
@@ -1832,13 +2214,14 @@ struct quat {
         f32 w_xyz[4];
         _mm_storeu_ps( w_xyz, _mm_mul_ps( _mm_set1_ps(w), _xyz ) );
 
-        f32 xy = x * y;
-        f32 yz = y * z;
-        f32 zx = z * x;
+        f32 xyz_yzx[4];
+        _mm_storeu_ps( xyz_yzx, _mm_mul_ps(_xyz, _mm_set_ps( 0.0f, x, z, y )) );
 
-        euler.x = atan2( 2.0f * ( w_xyz[0] + yz ), 1.0f - 2.0f * ( xyz2[0] + xyz2[1] ) );
-        euler.y = asinNoNaN( 2.0f * ( w_xyz[1] - zx ) );
-        euler.z = atan2( 2.0f * ( w_xyz[2] + xy ), 1.0f - 2.0f * ( xyz2[1] + xyz2[2] ) );
+        return {
+            atan2(     2.0f * ( w_xyz[0] + xyz_yzx[1] ), 1.0f - 2.0f * ( xyz2[0] + xyz2[1] ) ),
+            asinNoNaN( 2.0f * ( w_xyz[1] - xyz_yzx[2] ) ),
+            atan2(     2.0f * ( w_xyz[2] + xyz_yzx[0] ), 1.0f - 2.0f * ( xyz2[1] + xyz2[2] ) )
+        };
     }
     // identity quaternion
     static quat identity() { return { 1.0f, 0.0f, 0.0f, 0.0f }; }
@@ -1859,6 +2242,10 @@ struct quat {
             result[1],
             result[2]
         };
+    }
+    // construct quaternion from angle-axis
+    static quat angleAxis( const angleaxis& angleAxis ) {
+        return quat::angleAxis( angleAxis.theta, angleAxis.axis );
     }
     // construct quaternion from euler angles
     static quat euler( f32 x, f32 y, f32 z ) {
@@ -1952,6 +2339,13 @@ inline quat normalize( const quat& q ) {
         return {};
     }
 }
+inline f32 angle( const quat& lhs, const quat& rhs ) {
+    quat qd = inverse( lhs ) * rhs;
+    return 2.0f * atan2( mag(smath::vec3( qd.x, qd.y, qd.z )), qd.w );
+}
+inline f32 unsignedAngle( const quat& lhs, const quat& rhs ) {
+    return abs(angle(lhs, rhs));
+}
 inline bool cmp( const quat& lhs, const quat& rhs ) {
     return sqrMag(lhs - rhs) < VEC_CMP_THRESHOLD;
 }
@@ -1996,24 +2390,17 @@ inline quat slerp( const quat& a, const quat& b, f32 t ) {
         _b = -_b;
         cosTheta = -cosTheta;
     }
-
     if( cosTheta > 1.0f - F32::EPSILON ) {
         return lerp( a, b, t );
-        // return quat(
-        //     lerp( a.w, b.w, t ),
-        //     lerp( a.x, b.x, t ),
-        //     lerp( a.y, b.y, t ),
-        //     lerp( a.z, b.z, t )
-        // );
     } else {
-        return ( sin( ( 1.0f - t ) * theta ) * a + sin( t * theta ) * _b ) / sin( theta );
+        return normalize(( sin( ( 1.0f - t ) * theta ) * a + sin( t * theta ) * _b ) / sin( theta ));
     }
 }
 inline quat clampedSlerp( const quat& a, const quat& b, f32 t ) {
     return slerp( a, b, clamp( t, 0.0f, 1.0f ) );
 }
 inline quat lerp( const quat& a, const quat& b, f32 t ) {
-    return normalize( a * ( 1.0f - t ) + ( b * a ) );
+    return normalize(( 1.0f - t ) * a + b * t);
 }
 inline quat clampedLerp( const quat& a, const quat& b, f32 t ) {
     return lerp( a, b, clamp( t, 0.0f, 1.0f ) );
@@ -2446,11 +2833,6 @@ struct mat4 {
         f32 xy_2 = 2.0f * (x * y);
         f32 xz_2 = 2.0f * (x * z);
 
-
-        f32 wx = w * x;
-        f32 wy = w * y;
-        f32 wz = w * z;
-        f32 yz = y * z;
         f32 _wxyz_yz_2[4];
         _mm_storeu_ps(
             _wxyz_yz_2,
@@ -2691,14 +3073,76 @@ inline bool mat3::normalMat( const mat4& transform, mat3& result ) {
 
 // NOTE(alicia): conversions
 
-inline vec2::vec2( const ivec2& iv ) : x((f32)iv.x), y((f32)iv.y) {}
-inline vec3::vec3( const ivec3& iv ) : x((f32)iv.x), y((f32)iv.y), z((f32)iv.z) {}
-inline vec3::vec3( const vec4& v ) : x(v.x), y(v.y), z(v.z) {}
-inline vec4::vec4( const ivec4& iv ) : x((f32)iv.x), y((f32)iv.y), z((f32)iv.z), w((f32)iv.w) {}
+inline vec2::vec2( const ivec2& iv )  : x((f32)iv.x), y((f32)iv.y) {}
+inline vec2::vec2( const bvec2& b )   : x((f32)b.x), y((f32)b.y) {}
+inline vec2::vec2( const vec3& v )    : x(v.x), y(v.y) {}
+inline vec2::vec2( const vec4& v )    : x(v.x), y(v.y) {}
+inline bvec2::bvec2( const bvec3& v ) : x(v.x), y(v.y) {}
+inline bvec2::bvec2( const bvec4& v ) : x(v.x), y(v.y) {}
+inline ivec2::ivec2( const bvec2& b ) : x(b.x), y(b.y) {}
+inline ivec2 trunc32( const vec2& v ) {
+    return { trunc32( v.x ), trunc32( v.y ) };
+}
+inline ivec2 floor32( const vec2& v ) {
+    return { floor32( v.x ), floor32( v.y ) };
+}
+inline ivec2 ceil32( const vec2& v ) {
+    return { ceil32( v.x ), ceil32( v.y ) };
+}
+inline ivec2 round32( const vec2& v ) {
+    return { round32( v.x ), round32( v.y ) };
+}
+
+inline vec3::vec3( const ivec3& iv )  : x((f32)iv.x), y((f32)iv.y), z((f32)iv.z) {}
+inline vec3::vec3( const bvec3& b )   : x((f32)b.x), y((f32)b.y), z((f32)b.z) {}
+inline vec3::vec3( const vec4& v )    : x(v.x), y(v.y), z(v.z) {}
+inline ivec3::ivec3( const ivec4& v ) : x(v.x), y(v.y), z(v.z) {}
+inline ivec3::ivec3( const bvec3& b ) : x((i32)b.x), y((i32)b.y), z((i32)b.z) {}
+inline bvec3::bvec3( const bvec4& b ) : x(b.x), y(b.y), z(b.z) {}
+inline ivec3 trunc32( const vec3& v ) {
+    return { trunc32( v.x ), trunc32( v.y ), trunc32( v.z ) };
+}
+inline ivec3 floor32( const vec3& v ) {
+    return { floor32( v.x ), floor32( v.y ), floor32( v.z ) };
+}
+inline ivec3 ceil32( const vec3& v ) {
+    return { ceil32( v.x ), ceil32( v.y ), ceil32( v.z ) };
+}
+inline ivec3 round32( const vec3& v ) {
+    return { round32( v.x ), round32( v.y ), round32( v.z ) };
+}
+
+inline vec4::vec4( const ivec4& iv )  : x((f32)iv.x), y((f32)iv.y), z((f32)iv.z), w((f32)iv.w) {}
+inline vec4::vec4( const bvec4& b )   : x((f32)b.x), y((f32)b.y), z((f32)b.z), w((f32)b.w) {}
+inline ivec4::ivec4( const bvec4& b ) : x((i32)b.x), y((i32)b.y), z((i32)b.z), w((i32)b.w) {}
+inline ivec4 trunc32( const vec4& v ) {
+    return { trunc32( v.x ), trunc32( v.y ), trunc32( v.z ), trunc32( v.w ) };
+}
+inline ivec4 floor32( const vec4& v ) {
+    return { floor32( v.x ), floor32( v.y ), floor32( v.z ), floor32( v.w ) };
+}
+inline ivec4 ceil32( const vec4& v ) {
+    return { ceil32( v.x ), ceil32( v.y ), ceil32( v.z ), ceil32( v.w ) };
+}
+inline ivec4 round32( const vec4& v ) {
+    return { round32( v.x ), round32( v.y ), round32( v.z ), round32( v.w ) };
+}
+
 inline mat3::mat3( const mat4& m )
 : _m00(m[0]), _m01(m[1]), _m02(m[2]),
   _m10(m[4]), _m11(m[5]), _m12(m[6]),
   _m20(m[8]), _m21(m[9]), _m22(m[10]) {}
+
+// NOTE(alicia): more functions ---------------------------------------------------------------------------
+
+// degrees to radians euler angles
+inline vec3 toRad( const vec3& deg ) {
+    return deg * ( F32::PI / 180.0f );
+}
+// radians to degrees euler angles
+inline vec3 toDeg( const vec3& rad ) {
+    return rad * ( 180.0f / F32::PI );
+}
 
 } // namespace smath
 
